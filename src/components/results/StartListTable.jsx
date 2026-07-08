@@ -1,0 +1,120 @@
+import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { Search } from 'lucide-react'
+import EventAccordion from './EventAccordion'
+import ExportActions from './ExportActions'
+import EmptyState from './EmptyState'
+import SearchFilters from './SearchFilters'
+
+export default function StartListTable({ startListData }) {
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const events = startListData ? Object.values(startListData) : []
+
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) return events
+    const q = searchQuery.toLowerCase()
+    return events
+      .map((event) => ({
+        ...event,
+        entries: event.entries.filter(
+          (e) =>
+            e.athlete.toLowerCase().includes(q) ||
+            e.club.toLowerCase().includes(q) ||
+            e.country.toLowerCase().includes(q) ||
+            e.bib.toString().includes(q)
+        ),
+      }))
+      .filter((event) => event.entries.length > 0)
+  }, [events, searchQuery])
+
+  if (!startListData || Object.keys(startListData).length === 0) {
+    return (
+      <EmptyState
+        icon="file"
+        title="No Start Lists Available"
+        description="Start lists have not been published yet for this championship."
+      />
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#64748B] pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by athlete, club, or country..."
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+          />
+        </div>
+        <ExportActions />
+      </div>
+
+      <div className="space-y-4">
+        {filteredEvents.length === 0 ? (
+          <EmptyState
+            icon="search"
+            title="No Results Found"
+            description="Try adjusting your search query."
+          />
+        ) : (
+          filteredEvents.map((event, ei) => (
+            <motion.div
+              key={event.id || ei}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: ei * 0.06 }}
+            >
+              <EventAccordion
+                title={event.name}
+                subtitle={`${event.gender} • ${event.category} • ${event.round} • ${event.entries.length} athletes`}
+                defaultOpen={ei === 0}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50/80">
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Lane</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Bib</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Athlete</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Club</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Country</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">PB</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">SB</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {event.entries.map((entry, ii) => (
+                        <motion.tr
+                          key={entry.bib}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.2, delay: ii * 0.03 }}
+                          className="border-t border-gray-50 hover:bg-gray-50/50 transition-colors"
+                        >
+                          <td className="px-4 lg:px-5 py-3 text-sm font-bold text-[#0F172A]">{entry.lane}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm font-semibold text-primary">{entry.bib}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm font-semibold text-[#0F172A] whitespace-nowrap">{entry.athlete}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm text-[#64748B] hidden sm:table-cell whitespace-nowrap">{entry.club}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm text-[#64748B] hidden md:table-cell">{entry.country}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm text-[#64748B] hidden lg:table-cell font-mono">{entry.pb}</td>
+                          <td className="px-4 lg:px-5 py-3 text-sm text-[#64748B] hidden lg:table-cell font-mono">{entry.sb}</td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </EventAccordion>
+            </motion.div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

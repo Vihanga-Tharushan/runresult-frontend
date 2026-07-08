@@ -1,122 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import Home from './pages/Home'
+import Signup from './pages/Signup'
+import Login from './pages/Login'
+import AthleteDashboard from './pages/AthleteDashboard'
+import ResultsPage from './pages/ResultsPage'
+import ChampionshipDetailPage from './pages/ChampionshipDetailPage'
+import ChampionshipsPage from './pages/ChampionshipsPage'
+import ChampionshipRegistrationPage from './pages/ChampionshipRegistrationPage'
+import ScrollToTop from './components/ScrollToTop'
+import AthleteResults from './pages/AthleteResult'
+import AthletePage from './pages/Athlete'
+import AdminPage from './pages/admin/AdminPage'
+import StaffPage from './pages/staff/StaffPage'
+import TestPage from './pages/test/test'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 
-function App() {
-  const [count, setCount] = useState(0)
 
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <Router>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+        <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
+        <ScrollToTop />
+        <div className="flex flex-col min-h-screen">
+          <div className="flex-1">
+            <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/register" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/results" element={<ResultsPage />} />
+            <Route path="/athlete/*" element={<AthletePage />} />
+            <Route path= "/admin/*" element={<AdminPage />} />
+            <Route path= "/staff/*" element={<StaffPage />} />
+            <Route path="/results/:championshipId" element={<ChampionshipDetailPage />} />
+            <Route path="/championships/:championshipId" element={<ChampionshipRegistrationPage />} />
+            <Route path="/test" element={<TestPage/>}/>
+          </Routes>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      </div>
+    </GoogleOAuthProvider>
+    </Router>
   )
 }
-
-export default App
