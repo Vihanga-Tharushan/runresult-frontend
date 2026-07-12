@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Trophy, FileText, Table, Printer,
-  Users, Settings,
+  Users, Settings, Medal,
   LogOut, UserCircle, PanelRightClose, PanelRightOpen,
 } from 'lucide-react'
 
@@ -20,6 +20,7 @@ function getUserFromToken() {
 const navItems = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Championships', path: '/admin/championships', icon: Trophy },
+  { name: 'Registered Athletes', path: '/admin/registered-athletes', icon: Medal },
   { name: 'Registration Forms', path: '/admin/forms', icon: FileText },
   { name: 'Google Sheets', path: '/admin/google-sheets', icon: Table },
   { name: 'Certificate Printing', path: '/admin/certificates', icon: Printer },

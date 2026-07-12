@@ -9,6 +9,7 @@ import FormsPage from './modules/FormsPage'
 import GoogleSheetsPage from './modules/GoogleSheetsPage'
 import CertificatesPage from './modules/CertificatesPage'
 import UsersPage from './modules/UsersPage'
+import RegisteredAthletesPage from './modules/RegisteredAthletesPage'
 import SettingsPage from './modules/SettingsPage'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -77,6 +78,7 @@ export default function AdminPage() {
               {userLoaded? <Routes path="/">
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/championships" element={<ChampionshipsPage />} />
+                <Route path="/registered-athletes" element={<RegisteredAthletesPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/google-sheets" element={<GoogleSheetsPage />} />
                 <Route path="/certificates" element={<CertificatesPage />} />

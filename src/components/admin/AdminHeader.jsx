@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 const pageTitles = {
   '/admin/dashboard': 'Dashboard',
   '/admin/championships': 'Championships',
+  '/admin/registered-athletes': 'Registered Athletes',
   '/admin/forms': 'Registration Forms',
   '/admin/google-sheets': 'Google Sheets',
   '/admin/certificates': 'Certificate Printing',
@@ -21,6 +22,7 @@ export default function AdminHeader({ title, action }) {
         <p className="text-sm text-[#64748B] mt-1">
           {location.pathname === '/admin/dashboard' && 'Overview of your sports management platform'}
           {location.pathname === '/admin/championships' && 'Create and manage championships'}
+          {location.pathname === '/admin/registered-athletes' && 'View and manage athlete registrations by championship'}
           {location.pathname === '/admin/forms' && 'Configure registration forms for championships'}
           {location.pathname === '/admin/google-sheets' && 'Integrate Google Sheets for data management'}
           {location.pathname === '/admin/certificates' && 'Manage certificate printing and templates'}

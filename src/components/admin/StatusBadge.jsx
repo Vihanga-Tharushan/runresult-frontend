@@ -12,6 +12,11 @@ const variants = {
   inactive: { bg: 'bg-gray-100 text-gray-500 border-gray-200', icon: XCircle },
   connected: { bg: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: CheckCircle },
   disconnected: { bg: 'bg-red-50 text-red-500 border-red-200', icon: XCircle },
+  paid: { bg: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: CheckCircle },
+  pending: { bg: 'bg-amber-50 text-amber-600 border-amber-200', icon: Clock },
+  failed: { bg: 'bg-red-50 text-red-500 border-red-200', icon: XCircle },
+  approved: { bg: 'bg-emerald-50 text-emerald-600 border-emerald-200', icon: CheckCircle },
+  rejected: { bg: 'bg-red-50 text-red-500 border-red-200', icon: XCircle },
 }
 
 const labels = {
@@ -25,6 +30,11 @@ const labels = {
   inactive: 'Inactive',
   connected: 'Connected',
   disconnected: 'Not Connected',
+  paid: 'Paid',
+  pending: 'Pending',
+  failed: 'Failed',
+  approved: 'Approved',
+  rejected: 'Rejected',
 }
 
 export default function StatusBadge({ status, size = 'sm' }) {

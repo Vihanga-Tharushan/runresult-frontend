@@ -1,22 +1,39 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Users, ListOrdered, Thermometer, Award,
+  Users, ListOrdered, Thermometer, Award, Printer,
   LogOut, UserCircle, PanelRightClose, PanelRightOpen,
 } from 'lucide-react'
-import { staffProfile } from '../../data/staffData'
+
+function getUserFromToken() {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return { name: 'Staff', email: '', role: 'staff' }
+    return JSON.parse(atob(token.split('.')[1]))
+  } catch {
+    return { name: 'Staff', email: '', role: 'staff' }
+  }
+}
 
 const navItems = [
   { name: 'Registered Users', path: '/staff/registered-users', icon: Users },
   { name: 'Start List', path: '/staff/start-list', icon: ListOrdered },
   { name: 'Heat Results', path: '/staff/heat-results', icon: Thermometer },
   { name: 'Final Results', path: '/staff/final-results', icon: Award },
+  { name: 'Certificate Print', path: '/staff/certificate-print', icon: Printer },
 ]
 
 export default function StaffSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const user = getUserFromToken()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
 
   return (
     <motion.aside
@@ -111,13 +128,13 @@ export default function StaffSidebar() {
                 exit={{ opacity: 0, x: -10 }}
                 className="min-w-0"
               >
-                <p className="text-sm font-medium text-[#0F172A] truncate">{staffProfile.name}</p>
-                <p className="text-xs text-[#64748B] truncate">{staffProfile.role}</p>
+                <p className="text-sm font-medium text-[#0F172A] truncate">{user.name || 'Staff'}</p>
+                <p className="text-xs text-[#64748B] truncate">{user.email || 'staff'}</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#64748B] hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#64748B] hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full">
           <LogOut size={20} className="shrink-0" />
           <AnimatePresence mode="wait">
             {!collapsed && (

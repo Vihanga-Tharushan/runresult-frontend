@@ -1,15 +1,58 @@
-import { useState } from 'react'
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { useState , useEffect } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import StaffSidebar from '../../components/staff/StaffSidebar'
 import RegisteredUsersPage from './modules/RegisteredUsersPage'
 import StartListPage from './modules/StartListPage'
 import HeatResultsPage from './modules/HeatResultsPage'
 import FinalResultsPage from './modules/FinalResultsPage'
+import CertificatePrintPage from './modules/CertificatePrintPage'
+import axios from 'axios'
+import toast from 'react-hot-toast'
+import Loader from '../../components/loader/Loader'
+
 
 export default function StaffPage() {
   const [sidebarCollapsed] = useState(false)
+  const [userLoaded, setUserLoaded] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate();
+
+
+    useEffect(
+      ()=>{
+        const token = localStorage.getItem("token");
+  
+        if(token == null){
+  
+          toast.error("Please login to access Staff panel");
+          navigate("/login");
+          return;
+        }
+  
+  
+        axios.get(import.meta.env.VITE_API_URL + "/api/users/me",{
+            headers : {
+                Authorization: `Bearer ${token}`,
+            },
+        }).then((res)=>{
+            if(res.data.user.role !== "staff"){
+              toast.error("You are not authorized to access Staff panel");
+              navigate("/");
+              return;
+            }
+  
+            setUserLoaded(true);
+  
+        }).catch(()=>{
+            toast.error("Session expired. Please login again");
+            localStorage.removeItem("token");
+            navigate("/login");
+        })
+        
+      },[]
+    )
+
 
   return (
     <div className="min-h-screen bg-[#FCFCFC]">
@@ -28,13 +71,14 @@ export default function StaffPage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <Routes>
+              {userLoaded ? <Routes>
                 <Route path="/registered-users" element={<RegisteredUsersPage />} />
                 <Route path="/start-list" element={<StartListPage />} />
                 <Route path="/heat-results" element={<HeatResultsPage />} />
                 <Route path="/final-results" element={<FinalResultsPage />} />
+                <Route path="/certificate-print" element={<CertificatePrintPage />} />
                 <Route path="*" element={<RegisteredUsersPage />} />
-              </Routes>
+              </Routes> : <Loader />}
             </motion.div>
           </AnimatePresence>
         </div>

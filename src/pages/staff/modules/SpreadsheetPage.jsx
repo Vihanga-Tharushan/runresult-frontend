@@ -18,6 +18,7 @@ const pageConfig = {
   'start-list': { sheetKey: 'startList', header: { title: 'Start List', desc: 'Arrange lane assignments and athlete positions for events.' } },
   'heat-results': { sheetKey: 'heatResults', header: { title: 'Heat Results', desc: 'Enter performances, timings, and qualification status for heats.' } },
   'final-results': { sheetKey: 'finalResults', header: { title: 'Final Results', desc: 'Edit final rankings, medals, records, and performance values.' } },
+  'certificate-print': { sheetKey: 'certificate', header: { title: 'Certificate Printing', desc: 'View and print certificates for registered athletes.' } },
 }
 
 export default function SpreadsheetPage({ pageKey }) {
