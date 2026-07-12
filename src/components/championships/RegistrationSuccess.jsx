@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { CheckCircle, ArrowRight, Download, Calendar, MapPin } from 'lucide-react'
 
-export default function RegistrationSuccess({ championship, formData, selectedEvents, total, paymentMethod, registrationNumber }) {
+export default function RegistrationSuccess({ championship, formData, selectedEvents, total, paymentMethod, registrationNumber, bibNumber, paymentStatus }) {
   const getEventName = (id) => {
     const event = championship.events.find((e) => e.id === id)
     return event ? event.name : id
@@ -48,6 +48,12 @@ export default function RegistrationSuccess({ championship, formData, selectedEv
             <div className="text-center mb-6 pb-6 border-b border-gray-100">
               <p className="text-xs text-[#64748B] mb-1">Registration Number</p>
               <p className="text-xl font-extrabold text-primary">{registrationNumber}</p>
+              {bibNumber && (
+                <>
+                  <p className="text-xs text-[#64748B] mb-1 mt-3">Bib Number</p>
+                  <p className="text-2xl font-extrabold text-[#0F172A]">{bibNumber}</p>
+                </>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -80,8 +86,12 @@ export default function RegistrationSuccess({ championship, formData, selectedEv
 
               <div className="flex justify-between">
                 <span className="text-sm text-[#64748B]">Payment Status</span>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200">
-                  {paymentMethod === 'online' ? 'Paid' : 'Pending Verification'}
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                  (paymentStatus || (paymentMethod === 'online' ? 'paid' : 'pending')) === 'paid'
+                    ? 'text-emerald-600 bg-emerald-50 border border-emerald-200'
+                    : 'text-amber-600 bg-amber-50 border border-amber-200'
+                }`}>
+                  {(paymentStatus || (paymentMethod === 'online' ? 'paid' : 'pending')) === 'paid' ? 'Paid' : 'Pending Verification'}
                 </span>
               </div>
             </div>

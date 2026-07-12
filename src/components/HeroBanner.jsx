@@ -1,6 +1,10 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Trophy, ShieldCheck, BarChart3, ArrowRight, ListChecks } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import axios from 'axios'
+
+const API = import.meta.env.VITE_API_URL
 
 const features = [
   {
@@ -21,6 +25,17 @@ const features = [
 ]
 
 export default function HeroBanner() {
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      axios.get(API + '/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => setUser(res.data.user)).catch(() => {})
+    }
+  }, [])
+
   return (
     <section className="relative min-h-[90vh] lg:min-h-screen flex items-center overflow-hidden bg-linear-to-br from-blue-50/50 via-white to-white pt-20 lg:pt-24">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-10 w-full">
@@ -34,7 +49,7 @@ export default function HeroBanner() {
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0F172A] leading-tight mb-4">
               Welcome back,<br />
-              <span className="text-primary">John Silva</span>
+              <span className="text-primary">{user ? user.name : 'Athlete'}</span>
               <span className="inline-block animate-wave origin-[70%_70%] ml-1">👋</span>
             </h1>
 

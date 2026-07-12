@@ -8,7 +8,7 @@ export default function ChampionshipHero({ championship }) {
     <section className="relative min-h-[50vh] lg:min-h-[55vh] flex items-end">
       <div className="absolute inset-0">
         <img
-          src={championship.banner}
+          src={championship.banner || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80'}
           alt=""
           className="w-full h-full object-cover"
         />
@@ -18,7 +18,7 @@ export default function ChampionshipHero({ championship }) {
       <div className="relative w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 lg:pb-12">
           <Link
-            to="/championships"
+            to="/athlete/championships"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-white/70 hover:text-white transition-colors mb-4 lg:mb-6"
           >
             <ChevronLeft size={16} />
@@ -33,7 +33,7 @@ export default function ChampionshipHero({ championship }) {
           >
             <div className="w-20 h-20 lg:w-28 lg:h-28 rounded-2xl overflow-hidden bg-white/90 backdrop-blur-sm p-2 shadow-lg shrink-0">
               <img
-                src={championship.logo}
+                src={championship.logo || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200&q=80'}
                 alt=""
                 className="w-full h-full object-contain rounded-xl"
               />
@@ -41,7 +41,7 @@ export default function ChampionshipHero({ championship }) {
 
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-3 mb-2">
-                <StatusBadge status={championship.status} size="md" />
+                <StatusBadge status={championship.status || championship.registrationStatus} size="md" />
                 <span className="text-sm font-medium text-white/70">{championship.organizer}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-3">

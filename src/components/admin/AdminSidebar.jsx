@@ -1,12 +1,21 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Trophy, FileText, Table, Printer,
   Users, Settings,
   LogOut, UserCircle, PanelRightClose, PanelRightOpen,
 } from 'lucide-react'
-import { adminProfile } from '../../data/adminData'
+
+function getUserFromToken() {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return { name: 'User', email: '' }
+    return JSON.parse(atob(token.split('.')[1]))
+  } catch {
+    return { name: 'User', email: '' }
+  }
+}
 
 const navItems = [
   { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
@@ -21,6 +30,13 @@ const navItems = [
 export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+  const user = getUserFromToken()
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    navigate('/login')
+  }
 
   return (
     <motion.aside
@@ -38,7 +54,7 @@ export default function AdminSidebar() {
               exit={{ opacity: 0 }}
               className="flex items-center gap-2 overflow-hidden"
             >
-              <img src="/logo.png" alt="RunResult" className="h-8 w-auto" />
+              <img src="/logo.png" alt="RunResult" className="h-12 w-auto" />
             </motion.div>
           ) : (
             <motion.div
@@ -123,14 +139,14 @@ export default function AdminSidebar() {
                 className="flex items-center justify-between flex-1 min-w-0"
               >
                 <div className="truncate">
-                  <p className="text-sm font-medium text-[#0F172A] truncate">{adminProfile.name}</p>
-                  <p className="text-xs text-[#64748B] truncate">{adminProfile.email}</p>
+                  <p className="text-sm font-medium text-[#0F172A] truncate">{user.name || 'User'}</p>
+                  <p className="text-xs text-[#64748B] truncate">{user.email}</p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </Link>
-        <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#64748B] hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full">
+        <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#64748B] hover:text-red-600 hover:bg-red-50 transition-all duration-200 w-full">
           <LogOut size={20} className="shrink-0" />
           <AnimatePresence mode="wait">
             {!collapsed && (

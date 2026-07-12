@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion'
-import { Trophy, Users, Clock, UserCheck, Shield } from 'lucide-react'
+import { Trophy, Users, FileText, UserCheck, Shield } from 'lucide-react'
 
 const statsConfig = [
-  { key: 'totalChampionships', label: 'Total Championships', icon: Trophy, color: 'bg-blue-50 text-blue-600', change: '+2 this month' },
-  { key: 'activeChampionships', label: 'Active Championships', icon: Clock, color: 'bg-emerald-50 text-emerald-600', change: '3 currently open' },
-  { key: 'registeredAthletes', label: 'Registered Athletes', icon: Users, color: 'bg-purple-50 text-purple-600', change: '1,350 total' },
-  { key: 'pendingRegistrations', label: 'Pending Registrations', icon: UserCheck, color: 'bg-amber-50 text-amber-600', change: '28 need review' },
-  { key: 'staffMembers', label: 'Staff Members', icon: Shield, color: 'bg-cyan-50 text-cyan-600', change: '5 active accounts' },
+  { key: 'totalChampionships', label: 'Total Championships', icon: Trophy, color: 'bg-blue-50 text-blue-600' },
+  { key: 'publishedForms', label: 'Published Forms', icon: FileText, color: 'bg-emerald-50 text-emerald-600' },
+  { key: 'registeredUsers', label: 'Registered Users', icon: Users, color: 'bg-purple-50 text-purple-600' },
+  { key: 'registeredAthletes', label: 'Registered Athletes', icon: UserCheck, color: 'bg-amber-50 text-amber-600' },
+  { key: 'staffMembers', label: 'Staff Members', icon: Shield, color: 'bg-cyan-50 text-cyan-600' },
 ]
 
 export default function DashboardStats({ stats }) {
@@ -30,7 +30,7 @@ export default function DashboardStats({ stats }) {
               </div>
             </div>
             <p className="text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight">{value}</p>
-            <p className="text-xs text-[#64748B] mt-1.5">{config.change}</p>
+            <p className="text-xs text-[#64748B] mt-1.5">&nbsp;</p>
           </motion.div>
         )
       })}

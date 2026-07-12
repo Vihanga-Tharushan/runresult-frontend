@@ -16,12 +16,41 @@ export default function Login() {
   const navigate = useNavigate()
 
   const googleLogin = useGoogleLogin({
-      onSuccess: response => {
+      onSuccess: (response) => {
         axios.post(import.meta.env.VITE_API_URL + "/api/users/google-login", { token: response.access_token })
-      }
-  })
+          .then((res) => {
+            if (!res.data.token) {
+              toast.error(res.data.message || "Google login failed. Please try again.");
+              return;
+            }
 
-  
+            localStorage.setItem("token", res.data.token);
+            const user = res.data.user;
+
+            toast.success("Login successful! Welcome back, " + user.name + "!");
+
+            if(user.role == "admin"){
+              navigate("/admin/dashboard");
+            }else if(user.role == "staff"){
+              navigate("/staff/registered-users");
+            }else if(user.role == "athlete"){
+              navigate("/athlete/dashboard");
+            }else{
+              toast.error("Unknown user role. Please contact support.");
+            }
+          })
+          .catch((error) => {
+            toast.error("Google login failed. Please try again.");
+            console.error("Google login error:", error);
+          });
+      },
+      onError: () => {
+        toast.error("Google login failed. Please try again.");
+      },
+    });
+    
+    
+    
   async function login(){
 
     try{

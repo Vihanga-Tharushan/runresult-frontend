@@ -2,20 +2,22 @@ import { motion } from 'framer-motion'
 import { MapPin, Building2, Calendar, Medal, Users } from 'lucide-react'
 
 const statusStyles = {
-  completed: 'bg-emerald-500',
-  ongoing: 'bg-primary',
-  upcoming: 'bg-amber-500',
+  open: 'bg-emerald-500',
+  'closing-soon': 'bg-amber-500',
+  closed: 'bg-gray-500',
+  draft: 'bg-gray-400',
 }
 
 export default function ChampionshipHeader({ championship }) {
-  const statusLabel = championship.status.charAt(0).toUpperCase() + championship.status.slice(1)
+  const status = championship.registrationStatus || 'draft'
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')
 
   return (
     <section className="relative overflow-hidden bg-linear-to-br from-blue-50/50 via-white to-white">
       <div className="relative">
         <div className="h-48 lg:h-64 overflow-hidden">
           <img
-            src={championship.banner}
+            src={championship.banner || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80'}
             alt={championship.name}
             className="w-full h-full object-cover"
           />
@@ -31,8 +33,8 @@ export default function ChampionshipHeader({ championship }) {
           >
             <div className="flex flex-col lg:flex-row lg:items-start gap-6">
               <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-xl overflow-hidden shadow-sm shrink-0 bg-gray-50">
-                <img
-                  src={championship.logo}
+                  <img
+                    src={championship.logo || 'https://royalcollege.lk/wp-content/uploads/2015/06/57593648-1000x288.jpg'}
                   alt={championship.name}
                   className="w-full h-full object-cover"
                 />
@@ -43,7 +45,7 @@ export default function ChampionshipHeader({ championship }) {
                   <h1 className="text-xl lg:text-2xl font-extrabold text-[#0F172A] leading-tight">
                     {championship.name}
                   </h1>
-                  <span className={`inline-flex self-start px-3 py-1 text-xs font-semibold text-white rounded-full ${statusStyles[championship.status] || 'bg-gray-500'}`}>
+                  <span className={`inline-flex self-start px-3 py-1 text-xs font-semibold text-white rounded-full ${statusStyles[status] || 'bg-gray-500'}`}>
                     {statusLabel}
                   </span>
                 </div>

@@ -1,44 +1,25 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
-import { Star, MapPin, Calendar, ArrowRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Star, ArrowRight } from 'lucide-react'
+import axios from 'axios'
 import ChampionshipCard from './ChampionshipCard'
 
-const dummyChampionships = [
-  {
-    id: 1,
-    name: 'National Athletics Championships 2026',
-    location: 'Sydney Olympic Park, Australia',
-    date: '15 - 20 August 2026',
-    status: 'Ongoing',
-    description:
-      'The premier athletics event of the year featuring top athletes from across the nation competing in track and field events.',
-    image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&q=80',
-  },
-  {
-    id: 2,
-    name: 'World Junior Swimming Trials',
-    location: 'London Aquatics Centre, UK',
-    date: '5 - 9 September 2026',
-    status: 'Ongoing',
-    description:
-      'Young swimming talents from around the globe compete for a spot in the upcoming World Junior Championships.',
-    image: 'https://images.unsplash.com/photo-1530549387789-4c1017266634?w=600&q=80',
-  },
-  {
-    id: 3,
-    name: 'International Track & Field Series',
-    location: 'National Stadium, Tokyo, Japan',
-    date: '22 - 27 October 2026',
-    status: 'Ongoing',
-    description:
-      'An elite series bringing together world-class athletes for head-to-head competition in multiple disciplines.',
-    image: 'https://images.unsplash.com/photo-1461896836934-bd45ba8fcf9b?w=600&q=80',
-  },
-]
+const API = import.meta.env.VITE_API_URL
 
 export default function Championships() {
-
+  const [championships, setChampionships] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    axios.get(API + '/api/championships')
+      .then((res) => {
+        setChampionships(res.data.championships.slice(0, 3))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
 
   return (
     <section className="py-20 lg:py-8 bg-white">
@@ -68,13 +49,28 @@ export default function Championships() {
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-          {dummyChampionships.map((championship, index) => (
-            <ChampionshipCard
-              key={championship.id}
-              championship={championship}
-              index={index}
-            />
-          ))}
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <div key={i} className="bg-surface rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-gray-200 rounded w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded w-1/2" />
+                  <div className="h-4 bg-gray-200 rounded w-2/3" />
+                </div>
+              </div>
+            ))
+          ) : championships.length > 0 ? (
+            championships.map((championship, index) => (
+              <ChampionshipCard
+                key={championship._id}
+                championship={championship}
+                index={index}
+              />
+            ))
+          ) : (
+            <p className="col-span-3 text-center text-gray-400 py-10">No championships available yet.</p>
+          )}
         </div>
 
         <motion.div

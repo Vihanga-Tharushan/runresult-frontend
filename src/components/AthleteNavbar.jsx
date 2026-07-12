@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Trophy, BarChart3, Menu, X } from 'lucide-react'
-import UserDropdown from './UserDropdown'
+import { Home, Trophy, BarChart3, Menu, X, LogOut } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
@@ -42,7 +41,7 @@ export default function AthleteNavbar() {
 
               toast.error("Session expired. Please login again");
               localStorage.removeItem("token");
-              Navigate("/login");
+              navigate("/login");
               setUser(null);
               setLoading(false);
           })
@@ -62,6 +61,12 @@ export default function AthleteNavbar() {
     setIsOpen(false)
     setDropdownOpen(false)
   }, [location.pathname])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setDropdownOpen(false)
+    navigate('/login')
+  }
 
   return (
     <nav
@@ -119,7 +124,31 @@ export default function AthleteNavbar() {
                   <p className="text-xs text-gray-500 leading-tight">Athlete</p>
                 </div>
               </button>
-              <UserDropdown isOpen={dropdownOpen} onClose={() => setDropdownOpen(false)} />
+
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setDropdownOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                      transition={{ duration: 0.15, ease: 'easeOut' }}
+                      className="absolute right-0 top-full mt-2 w-48 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg shadow-black/10 border border-gray-100 overflow-hidden z-50"
+                    >
+                      <div className="p-2">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleLogout() }}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-all duration-200 w-full"
+                        >
+                          <LogOut size={17} />
+                          Logout
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
 
             <button
@@ -163,13 +192,13 @@ export default function AthleteNavbar() {
               })}
               <div className="h-px bg-gray-100 my-2" />
              
-              
-              <Link
-                to="/"
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+             
+              <button
+                onClick={(e) => { e.stopPropagation(); handleLogout() }}
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors w-full"
               >
                 Logout
-              </Link>
+              </button>
             </div>
           </motion.div>
         )}

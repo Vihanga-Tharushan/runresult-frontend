@@ -3,13 +3,15 @@ import { MapPin, Calendar, Building2, ArrowRight, Medal } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const statusStyles = {
-  completed: 'bg-emerald-500 text-white',
-  ongoing: 'bg-primary text-white',
-  upcoming: 'text-amber-600 bg-amber-50 border border-amber-200',
+  open: 'bg-emerald-500 text-white',
+  'closing-soon': 'bg-amber-500 text-white',
+  closed: 'bg-gray-500 text-white',
+  draft: 'bg-gray-400 text-white',
 }
 
 export default function ChampionshipCard({ championship, index }) {
-  const statusLabel = championship.status.charAt(0).toUpperCase() + championship.status.slice(1)
+  const status = championship.registrationStatus || 'draft'
+  const statusLabel = status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')
 
   return (
     <motion.div
@@ -22,12 +24,12 @@ export default function ChampionshipCard({ championship, index }) {
     >
       <div className="relative h-44 lg:h-48 overflow-hidden">
         <img
-          src={championship.banner}
+          src={championship.banner || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&q=80'}
           alt={championship.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent" />
-        <span className={`absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${statusStyles[championship.status] || 'bg-gray-500 text-white'}`}>
+        <span className={`absolute top-3 left-3 px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${statusStyles[status] || 'bg-gray-500 text-white'}`}>
           {statusLabel}
         </span>
       </div>
@@ -54,7 +56,7 @@ export default function ChampionshipCard({ championship, index }) {
 
         <div className="flex items-center gap-2 pt-1">
           <Link
-            to={`/results/${championship.id}`}
+            to={`/results/${championship.championship_id}`}
             className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs lg:text-sm font-semibold text-white bg-primary rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-sm shadow-primary/20"
           >
             <Medal size={14} />

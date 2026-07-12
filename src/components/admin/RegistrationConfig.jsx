@@ -1,58 +1,88 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Globe, Lock, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Globe, Lock, CheckCircle } from 'lucide-react'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 import PricingTable from './PricingTable'
 import ConfirmDialog from './ConfirmDialog'
 import EmptyState from './EmptyState'
 import StatusBadge from './StatusBadge'
 
-const mockChampionships = [
-  { id: 'ac-1', name: 'National Athletics Championships 2026', regStatus: 'open' },
-  { id: 'ac-2', name: 'International Track & Field Series', regStatus: 'open' },
-  { id: 'ac-3', name: 'Asian Athletics Grand Prix', regStatus: 'open' },
-  { id: 'ac-4', name: 'World Junior Athletics Championships', regStatus: 'closed' },
-  { id: 'ac-5', name: 'Regional Athletics Meet 2026', regStatus: 'draft' },
-]
+const API = import.meta.env.VITE_API_URL
+
+function authHeaders() {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 export default function RegistrationConfig() {
+  const [championships, setChampionships] = useState([])
   const [selectedChamp, setSelectedChamp] = useState(null)
   const [maxEvents, setMaxEvents] = useState(3)
-  const [pricing, setPricing] = useState([
-    { events: 1, fee: 500 },
-    { events: 2, fee: 800 },
-    { events: 3, fee: 1000 },
-  ])
+  const [pricing, setPricing] = useState([{ events: 1, fee: 0 }])
+  const [saving, setSaving] = useState(false)
   const [showPublishDialog, setShowPublishDialog] = useState(false)
   const [showCloseDialog, setShowCloseDialog] = useState(false)
-  const [toast, setToast] = useState(null)
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
+  useEffect(() => {
+    axios.get(API + '/api/championships', { headers: authHeaders() })
+      .then(res => setChampionships(res.data.championships))
+      .catch(() => {})
+  }, [])
+
+  const isPublished = selectedChamp?.registrationStatus === 'open'
+
+  function selectChamp(id) {
+    const champ = championships.find(c => c._id === id)
+    setSelectedChamp(champ)
+    setMaxEvents(champ?.maxEventsPerAthlete || 3)
+    setPricing(champ?.pricing?.length ? champ.pricing : [{ events: 1, fee: 0 }])
+  }
+
+  function updateChamp(data, successMsg) {
+    setSaving(true)
+    axios.put(API + `/api/championships/${selectedChamp._id}`, data, { headers: authHeaders() })
+      .then(res => {
+        const updated = res.data.championship
+        setChampionships(prev => prev.map(c => c._id === updated._id ? updated : c))
+        setSelectedChamp(updated)
+        toast.success(successMsg)
+      })
+      .catch(() => toast.error('Failed to update championship'))
+      .finally(() => setSaving(false))
   }
 
   const handlePublish = () => {
-    showToast('Registration published successfully! Championship is now visible on Athlete Portal.')
+    updateChamp({
+      maxEventsPerAthlete: maxEvents,
+      pricing,
+      registrationStatus: 'open',
+      publishStatus: 'published',
+    }, 'Registration published successfully! Championship is now visible on Athlete Portal.')
   }
 
   const handleClose = () => {
-    showToast('Registration closed. Athletes can no longer register.')
+    updateChamp({
+      registrationStatus: 'closed',
+      publishStatus: 'closed',
+    }, 'Registration closed. Athletes can no longer register.')
   }
 
   const handleSave = () => {
-    showToast('Registration configuration saved successfully!')
+    updateChamp({
+      maxEventsPerAthlete: maxEvents,
+      pricing,
+    }, 'Registration configuration saved successfully!')
   }
 
   if (!selectedChamp) {
     return (
       <div className="space-y-4">
         <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">Select Championship</label>
-        <select onChange={e => {
-          const champ = mockChampionships.find(c => c.id === e.target.value)
-          setSelectedChamp(champ)
-        }} value="" className="w-full max-w-md px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+        <select onChange={e => selectChamp(e.target.value)} value=""
+          className="w-full max-w-md px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
           <option value="">Choose a championship...</option>
-          {mockChampionships.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {championships.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
         <EmptyState icon="file" title="Select a Championship" description="Choose a championship above to configure its registration settings." />
       </div>
@@ -64,7 +94,7 @@ export default function RegistrationConfig() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-[#0F172A]">{selectedChamp.name}</h3>
-          <StatusBadge status={selectedChamp.regStatus} />
+          <StatusBadge status={selectedChamp.registrationStatus} />
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => setSelectedChamp(null)}
@@ -90,20 +120,23 @@ export default function RegistrationConfig() {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8">
         <h4 className="text-base font-bold text-[#0F172A] mb-4">Registration Controls</h4>
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {isPublished ? (
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
+              onClick={() => setShowCloseDialog(true)} disabled={saving}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all shadow-sm disabled:opacity-50">
+              <Lock size={18} /> Close Registration
+            </motion.button>
+          ) : (
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
+              onClick={() => setShowPublishDialog(true)} disabled={saving}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm disabled:opacity-50">
+              <Globe size={18} /> Publish Registration
+            </motion.button>
+          )}
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-            onClick={() => setShowPublishDialog(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm">
-            <Globe size={18} /> Publish Registration
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-            onClick={() => setShowCloseDialog(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-all shadow-sm">
-            <Lock size={18} /> Close Registration
-          </motion.button>
-          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-            onClick={handleSave}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-all shadow-sm">
+            onClick={handleSave} disabled={saving}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-all shadow-sm disabled:opacity-50">
             <CheckCircle size={18} /> Save Configuration
           </motion.button>
         </div>
@@ -115,16 +148,6 @@ export default function RegistrationConfig() {
       <ConfirmDialog isOpen={showCloseDialog} onClose={() => setShowCloseDialog(false)} onConfirm={handleClose}
         title="Close Registration?" message="Registration will be closed immediately. Athletes will no longer be able to register for this championship."
         confirmText="Close Registration" cancelText="Cancel" variant="danger" />
-
-      {toast && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-          className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-semibold ${
-            toast.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-          }`}>
-          {toast.type === 'success' ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
-          {toast.message}
-        </motion.div>
-      )}
     </div>
   )
 }

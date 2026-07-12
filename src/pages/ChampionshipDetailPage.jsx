@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, MapPin, Users, Shield, FileText } from 'lucide-react'
+import axios from 'axios'
 import Navbar from '../components/Navbar'
+import AthleteNavbar from '../components/AthleteNavbar'
 import Footer from '../components/Footer'
 import ChampionshipHeader from '../components/results/ChampionshipHeader'
 import ResultTabs from '../components/results/ResultTabs'
@@ -11,20 +13,49 @@ import StartListTable from '../components/results/StartListTable'
 import HeatResultsTable from '../components/results/HeatResultsTable'
 import FinalResultsTable from '../components/results/FinalResultsTable'
 import { PageSkeleton } from '../components/results/LoadingSkeleton'
-import { championships, programs, startLists, heatResults, finalResults } from '../data/results'
+
+const API = import.meta.env.VITE_API_URL
 
 export default function ChampionshipDetailPage() {
   const { championshipId } = useParams()
+  const [championship, setChampionship] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('program')
+  const [user, setUser] = useState(null)
+  const [finalResults, setFinalResults] = useState(null)
+  const [finalResultsLoading, setFinalResultsLoading] = useState(false)
 
-  const championship = championships.find((c) => c.id === championshipId)
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      axios.get(API + '/api/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      }).then((res) => setUser(res.data.user)).catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     setLoading(true)
-    const timer = setTimeout(() => setLoading(false), 400)
-    return () => clearTimeout(timer)
+    axios.get(API + `/api/championships/${championshipId}`)
+      .then((res) => setChampionship(res.data.championship))
+      .catch(() => setChampionship(null))
+      .finally(() => setLoading(false))
   }, [championshipId])
+
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasFinalResults = sheets.finalResults?.connected && sheets.finalResults?.url
+    if (!hasFinalResults) return
+
+    setFinalResultsLoading(true)
+    axios.get(API + `/api/results/final/${championship.championship_id}`)
+      .then((res) => setFinalResults(res.data.events))
+      .catch(() => setFinalResults(null))
+      .finally(() => setFinalResultsLoading(false))
+  }, [championship])
+
+  const Nav = user?.role === 'athlete' ? AthleteNavbar : Navbar
 
   if (loading) {
     return (
@@ -33,7 +64,7 @@ export default function ChampionshipDetailPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <Navbar />
+        <Nav />
         <div className="pt-20 lg:pt-24">
           <PageSkeleton />
         </div>
@@ -48,7 +79,7 @@ export default function ChampionshipDetailPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <Navbar />
+        <Nav />
         <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center pt-20 lg:pt-24">
           <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4">
             <FileText size={28} className="text-gray-300" />
@@ -68,12 +99,26 @@ export default function ChampionshipDetailPage() {
     )
   }
 
+  const program = championship.selectedEvents?.length
+    ? [{ day: 1, date: championship.startDate, items: championship.selectedEvents.map((event, i) => ({
+        time: '-',
+        event,
+        gender: '-',
+        category: '-',
+        round: 'Event',
+      }))}]
+    : []
+
+  const sheets = championship.googleSheets || {}
+  const hasStartList = sheets.startList?.connected && sheets.startList?.url
+  const hasHeatResults = sheets.heatResults?.connected && sheets.heatResults?.url
+  const hasFinalResults = sheets.finalResults?.connected && sheets.finalResults?.url
+
   const tabContent = {
-   
-    program: <ProgramTimeline program={programs[championship.id]} />,
-    'start-lists': <StartListTable startListData={startLists[championship.id]} />,
-    'heat-results': <HeatResultsTable heatData={heatResults[championship.id]} />,
-    'final-results': <FinalResultsTable finalData={finalResults[championship.id]} />,
+    program: <ProgramTimeline program={program} />,
+    'start-lists': <StartListTable startListData={hasStartList ? {} : null} />,
+    'heat-results': <HeatResultsTable heatData={hasHeatResults ? {} : null} />,
+    'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} />,
   }
 
   return (
@@ -82,7 +127,7 @@ export default function ChampionshipDetailPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <Navbar />
+      <Nav />
 
       <div >
     

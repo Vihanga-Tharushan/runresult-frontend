@@ -1,8 +1,17 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Save, CheckCircle, Eye, EyeOff, ExternalLink } from 'lucide-react'
+import { Save, Eye, EyeOff } from 'lucide-react'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 import SheetStatusCard from './SheetStatusCard'
 import EmptyState from './EmptyState'
+
+const API = import.meta.env.VITE_API_URL
+
+function authHeaders() {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 
 function extractSheetId(url) {
   if (!url) return null
@@ -23,14 +32,6 @@ const sheetTypes = [
   { key: 'finalResults', label: 'Final Results Sheet' },
 ]
 
-const mockChampionships = [
-  { id: 'ac-1', name: 'National Athletics Championships 2026' },
-  { id: 'ac-2', name: 'International Track & Field Series' },
-  { id: 'ac-3', name: 'Asian Athletics Grand Prix' },
-  { id: 'ac-4', name: 'World Junior Athletics Championships' },
-  { id: 'ac-5', name: 'Regional Athletics Meet 2026' },
-]
-
 const defaultSheets = {
   registration: { url: '', connected: false },
   startList: { url: '', connected: false },
@@ -39,20 +40,22 @@ const defaultSheets = {
 }
 
 export default function GoogleSheetForm() {
+  const [championships, setChampionships] = useState([])
   const [selectedChamp, setSelectedChamp] = useState(null)
   const [sheets, setSheets] = useState(defaultSheets)
   const [previewKey, setPreviewKey] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [saving, setSaving] = useState(false)
 
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
-  }
+  useEffect(() => {
+    axios.get(API + '/api/championships', { headers: authHeaders() })
+      .then(res => setChampionships(res.data.championships))
+      .catch(() => {})
+  }, [])
 
   const handleSelectChamp = (id) => {
-    const champ = mockChampionships.find(c => c.id === id)
+    const champ = championships.find(c => c._id === id)
     setSelectedChamp(champ)
-    setSheets(champ?.sheets || defaultSheets)
+    setSheets(champ?.googleSheets || defaultSheets)
     setPreviewKey(null)
   }
 
@@ -64,7 +67,16 @@ export default function GoogleSheetForm() {
   }
 
   const handleSave = () => {
-    showToast('Sheet URLs saved successfully! Connection status will be verified.')
+    setSaving(true)
+    axios.put(API + `/api/championships/${selectedChamp._id}`, { googleSheets: sheets }, { headers: authHeaders() })
+      .then(res => {
+        const updated = res.data.championship
+        setChampionships(prev => prev.map(c => c._id === updated._id ? updated : c))
+        setSelectedChamp(updated)
+        toast.success('Sheet URLs saved successfully!')
+      })
+      .catch(() => toast.error('Failed to save sheet URLs'))
+      .finally(() => setSaving(false))
   }
 
   if (!selectedChamp) {
@@ -74,7 +86,7 @@ export default function GoogleSheetForm() {
         <select onChange={e => handleSelectChamp(e.target.value)} value=""
           className="w-full max-w-md px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
           <option value="">Choose a championship...</option>
-          {mockChampionships.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          {championships.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
         <EmptyState icon="table" title="Select a Championship" description="Choose a championship above to configure its Google Sheet integrations." />
       </div>
@@ -121,7 +133,7 @@ export default function GoogleSheetForm() {
                         <iframe
                           src={embedUrl}
                           title={`${label} Preview`}
-                          className="w-full h-[350px] lg:h-[450px] bg-gray-50"
+                          className="w-full h-87.5 lg:h-112.5 bg-gray-50"
                           allowFullScreen
                         />
                       </motion.div>
@@ -135,18 +147,11 @@ export default function GoogleSheetForm() {
       </div>
 
       <div className="flex justify-end">
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all shadow-sm">
-          <Save size={16} /> Save All Sheets
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving}
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all shadow-sm disabled:opacity-50">
+          <Save size={16} /> {saving ? 'Saving...' : 'Save All Sheets'}
         </motion.button>
       </div>
-
-      {toast && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <CheckCircle size={18} /> {toast}
-        </motion.div>
-      )}
     </div>
   )
 }

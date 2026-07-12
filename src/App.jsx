@@ -14,6 +14,9 @@ import AthletePage from './pages/Athlete'
 import AdminPage from './pages/admin/AdminPage'
 import StaffPage from './pages/staff/StaffPage'
 import TestPage from './pages/test/test'
+import TermsAndConditions from './pages/TermsAndConditions'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import ForgetPassword from './pages/Forget-Password'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
 
@@ -29,6 +32,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/register" element={<Signup />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgetPassword />} />
             <Route path="/results" element={<ResultsPage />} />
             <Route path="/athlete/*" element={<AthletePage />} />
             <Route path= "/admin/*" element={<AdminPage />} />
@@ -36,6 +40,8 @@ export default function App() {
             <Route path="/results/:championshipId" element={<ChampionshipDetailPage />} />
             <Route path="/championships/:championshipId" element={<ChampionshipRegistrationPage />} />
             <Route path="/test" element={<TestPage/>}/>
+            <Route path="/terms" element={<TermsAndConditions />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
         </div>
       </div>

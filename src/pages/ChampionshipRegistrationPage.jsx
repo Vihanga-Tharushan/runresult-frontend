@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, FileText, CheckCircle } from 'lucide-react'
+import axios from 'axios'
 import AthleteNavbar from '../components/AthleteNavbar'
 import Footer from '../components/Footer'
 import ChampionshipHero from '../components/championships/ChampionshipHero'
@@ -12,28 +13,57 @@ import EventSelection from '../components/championships/EventSelection'
 import PaymentMethods from '../components/championships/PaymentMethods'
 import RegistrationSummary from '../components/championships/RegistrationSummary'
 import RegistrationSuccess from '../components/championships/RegistrationSuccess'
-import { registrationChampionships, userRegistrations, athleteProfile } from '../data/registration'
+
+const API = import.meta.env.VITE_API_URL
 
 export default function ChampionshipRegistrationPage() {
   const { championshipId } = useParams()
-  const championship = registrationChampionships.find((c) => c.id === championshipId)
+  const [championship, setChampionship] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   const [activeTab, setActiveTab] = useState('registration')
   const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState({ ...athleteProfile })
+  const [formData, setFormData] = useState({
+    fullName: '', nameWithInitials: '', gender: '', dateOfBirth: '',
+    ageCategory: '', email: '', mobile: '', nic: '', institution: '',
+    address: { district: '', addressLine1: '', addressLine2: '' },
+  })
   const [selectedEvents, setSelectedEvents] = useState([])
   const [paymentMethod, setPaymentMethod] = useState('')
   const [bankSlip, setBankSlip] = useState(null)
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
-  const [registrationNumber, setRegistrationNumber] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [registrationResult, setRegistrationResult] = useState(null)
+
+  useEffect(() => {
+    setLoading(true)
+    axios.get(API + `/api/championships/${championshipId}`)
+      .then((res) => setChampionship(res.data.championship))
+      .catch(() => setChampionship(null))
+      .finally(() => setLoading(false))
+  }, [championshipId])
+
+  if (loading) {
+    return (
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+        <AthleteNavbar />
+        <div className="pt-24 lg:pt-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-64 bg-gray-200 rounded-2xl" />
+            <div className="h-8 bg-gray-200 rounded w-1/3" />
+            <div className="h-4 bg-gray-200 rounded w-1/2" />
+          </div>
+        </div>
+        <Footer />
+      </motion.main>
+    )
+  }
 
   if (!championship) {
     return (
-      <motion.main
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-      >
+      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <AthleteNavbar />
         <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 text-center pt-24 lg:pt-28">
           <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mb-4">
@@ -54,11 +84,35 @@ export default function ChampionshipRegistrationPage() {
     )
   }
 
-  const isRegistered = userRegistrations.some((r) => r.championshipId === championshipId)
+  const isRegistrationOpen = championship.registrationStatus === 'open' || championship.registrationStatus === 'closing-soon'
 
-  const fee = selectedEvents.length * championship.feePerEvent
-  const rawTotal = championship.baseFee + fee
-  const total = championship.maxFee ? Math.min(rawTotal, championship.maxFee) : rawTotal
+  const baseFee = championship.pricing?.[0]?.fee || 0
+  const feePerEvent = championship.pricing?.[1]?.fee || 0
+  const maxFee = championship.maxEventsPerAthlete ? baseFee + (championship.maxEventsPerAthlete * feePerEvent) : null
+
+  const mappedEvents = (championship.selectedEvents || []).map((name, i) => ({
+    id: i,
+    name,
+    category: name.toLowerCase().includes('shot') || name.toLowerCase().includes('discus') || name.toLowerCase().includes('javelin') || name.toLowerCase().includes('long') || name.toLowerCase().includes('high') || name.toLowerCase().includes('triple') || name.toLowerCase().includes('pole') ? 'Field' : 'Track',
+    type: 'Individual',
+  }))
+
+  const mappedChampionship = {
+    ...championship,
+    id: championship.championship_id,
+    status: championship.registrationStatus,
+    deadline: championship.regCloseDate || 'TBD',
+    baseFee,
+    feePerEvent,
+    maxEvents: championship.maxEventsPerAthlete || 3,
+    maxFee,
+    events: mappedEvents,
+    rules: '',
+  }
+
+  const fee = selectedEvents.length * feePerEvent
+  const rawTotal = baseFee + fee
+  const total = maxFee ? Math.min(rawTotal, maxFee) : rawTotal
 
   const handleFormChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -110,14 +164,37 @@ export default function ChampionshipRegistrationPage() {
     }
   }
 
-  const generateRegNumber = () => {
-    const count = userRegistrations.length + 1
-    return `RRN-2026-${String(count).padStart(4, '0')}`
-  }
-
-  const handleComplete = () => {
-    setRegistrationNumber(generateRegNumber())
-    setSubmitted(true)
+  const handleComplete = async () => {
+    setSubmitting(true)
+    setSubmitError('')
+    try {
+      const res = await axios.post(API + '/api/registrations', {
+        championshipId: championship.championship_id,
+        fullName: formData.fullName,
+        nameWithInitials: formData.nameWithInitials,
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth,
+        ageCategory: formData.ageCategory,
+        email: formData.email,
+        mobile: formData.mobile,
+        nic: formData.nic || '',
+        institution: formData.institution,
+        address: formData.address,
+        selectedEvents,
+        paymentMethod,
+        totalFee: total,
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+      setRegistrationResult(res.data.registration)
+      setSubmitted(true)
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Registration failed. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleTabClick = (tabId) => {
@@ -128,7 +205,7 @@ export default function ChampionshipRegistrationPage() {
     }
   }
 
-  const scheduleContent = championship.events.length > 0 ? (
+  const scheduleContent = mappedEvents.length > 0 ? (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm">
       <h3 className="text-lg font-bold text-[#0F172A] mb-6">Event Schedule</h3>
       <div className="overflow-x-auto">
@@ -141,7 +218,7 @@ export default function ChampionshipRegistrationPage() {
             </tr>
           </thead>
           <tbody>
-            {championship.events.map((event, i) => (
+            {mappedEvents.map((event) => (
               <tr key={event.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                 <td className="py-3 px-4 font-medium text-[#0F172A]">{event.name}</td>
                 <td className="py-3 px-4 text-[#64748B]">{event.category}</td>
@@ -169,22 +246,24 @@ export default function ChampionshipRegistrationPage() {
       {submitted ? (
         <section className="pt-24 lg:pt-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <ChampionshipHero championship={championship} />
+            <ChampionshipHero championship={mappedChampionship} />
             <div className="max-w-4xl mx-auto py-8">
               <RegistrationSuccess
-                championship={championship}
+                championship={mappedChampionship}
                 formData={formData}
                 selectedEvents={selectedEvents}
                 total={total}
                 paymentMethod={paymentMethod}
-                registrationNumber={registrationNumber}
+                registrationNumber={registrationResult?.registrationNumber}
+                bibNumber={registrationResult?.bibNumber}
+                paymentStatus={registrationResult?.paymentStatus}
               />
             </div>
           </div>
         </section>
       ) : (
         <>
-          <ChampionshipHero championship={championship} />
+          <ChampionshipHero championship={mappedChampionship} />
 
           <section className="py-8 lg:py-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -200,7 +279,7 @@ export default function ChampionshipRegistrationPage() {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <OverviewContent championship={championship} isRegistered={isRegistered} />
+                      <OverviewContent championship={mappedChampionship} />
                     </motion.div>
                   )}
                   {activeTab === 'schedule' && (
@@ -222,7 +301,7 @@ export default function ChampionshipRegistrationPage() {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <RulesContent championship={championship} />
+                      <RulesContent championship={mappedChampionship} />
                     </motion.div>
                   )}
                   {activeTab === 'registration' && (
@@ -233,15 +312,15 @@ export default function ChampionshipRegistrationPage() {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.25 }}
                     >
-                      {isRegistered ? (
-                        <AlreadyRegisteredContent championship={championship} />
+                      {!isRegistrationOpen ? (
+                        <RegistrationClosedContent />
                       ) : (
                         <RegistrationWizard
                           step={step}
                           formData={formData}
                           handleFormChange={handleFormChange}
                           errors={errors}
-                          championship={championship}
+                          championship={mappedChampionship}
                           selectedEvents={selectedEvents}
                           setSelectedEvents={setSelectedEvents}
                           paymentMethod={paymentMethod}
@@ -255,6 +334,8 @@ export default function ChampionshipRegistrationPage() {
                           handleBack={handleBack}
                           handleComplete={handleComplete}
                           setErrors={setErrors}
+                          submitting={submitting}
+                          submitError={submitError}
                         />
                       )}
                     </motion.div>
@@ -271,13 +352,13 @@ export default function ChampionshipRegistrationPage() {
   )
 }
 
-function OverviewContent({ championship, isRegistered }) {
+function OverviewContent({ championship }) {
   return (
     <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
       <div className="lg:col-span-2 space-y-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm">
           <h3 className="text-lg font-bold text-[#0F172A] mb-3">About the Championship</h3>
-          <p className="text-sm text-[#64748B] leading-relaxed">{championship.description}</p>
+          <p className="text-sm text-[#64748B] leading-relaxed">{championship.description || 'No description available.'}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm">
@@ -295,10 +376,12 @@ function OverviewContent({ championship, isRegistered }) {
               <p className="text-xs text-[#64748B] mb-1">Max Events</p>
               <p className="text-lg font-extrabold text-[#0F172A]">{championship.maxEvents}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-xl">
-              <p className="text-xs text-[#64748B] mb-1">Max Fee</p>
-              <p className="text-lg font-extrabold text-[#0F172A]">Rs. {championship.maxFee.toLocaleString()}</p>
-            </div>
+            {championship.maxFee && (
+              <div className="p-4 bg-gray-50 rounded-xl">
+                <p className="text-xs text-[#64748B] mb-1">Max Fee</p>
+                <p className="text-lg font-extrabold text-[#0F172A]">Rs. {championship.maxFee.toLocaleString()}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -321,75 +404,36 @@ function OverviewContent({ championship, isRegistered }) {
             </div>
           </div>
         </div>
-
-        
-        {isRegistered && (
-          <div className="bg-emerald-50 rounded-2xl border border-emerald-200 p-6 text-center">
-            <CheckCircle size={32} className="text-emerald-500 mx-auto mb-3" />
-            <p className="text-sm font-bold text-emerald-700">You are already registered</p>
-            <p className="text-xs text-emerald-600 mt-1">View your registration status in your dashboard.</p>
-          </div>
-        )}
       </div>
     </div>
   )
 }
 
 function RulesContent({ championship }) {
-  const rules = championship.rules ? championship.rules.split('\n') : ['Rules are not yet available for this championship.']
-
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-6 lg:p-8 shadow-sm">
       <h3 className="text-lg font-bold text-[#0F172A] mb-6">Rules & Regulations</h3>
-      <div className="space-y-3">
-        {rules.filter(Boolean).map((rule, i) => (
-          <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
-            <span className="w-6 h-6 rounded-lg bg-primary/5 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-              {i + 1}
-            </span>
-            <p className="text-sm text-[#64748B] leading-relaxed">{rule.replace(/^\d+\.\s*/, '')}</p>
-          </div>
-        ))}
-      </div>
+      <p className="text-sm text-[#64748B]">Rules are not yet available for this championship.</p>
     </div>
   )
 }
 
-function AlreadyRegisteredContent({ championship }) {
-  const reg = userRegistrations.find((r) => r.championshipId === championship.id)
-
+function RegistrationClosedContent() {
   return (
-    <div className="text-center py-12">
-      <div className="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-100">
-        <CheckCircle size={44} className="text-emerald-500" />
+    <div className="text-center py-16">
+      <div className="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-6">
+        <FileText size={44} className="text-gray-400" />
       </div>
-      <h2 className="text-2xl font-extrabold text-[#0F172A] mb-2">Already Registered</h2>
+      <h2 className="text-2xl font-extrabold text-[#0F172A] mb-2">Registration Closed</h2>
       <p className="text-sm text-[#64748B] mb-8 max-w-sm mx-auto">
-        You have already registered for this championship. You cannot register again.
+        Registration for this championship is currently not open. Please check back later.
       </p>
-      {reg && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm max-w-sm mx-auto text-left">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">Registration No.</span>
-              <span className="font-semibold text-[#0F172A]">{reg.registrationNumber}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#64748B]">Status</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold text-emerald-600 bg-emerald-50">
-                <CheckCircle size={11} />
-                {reg.regStatus === 'approved' ? 'Approved' : 'Pending'}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
       <Link
-        to="/dashboard"
-        className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200"
+        to="/championships"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200"
       >
-        Go to Dashboard
-        <ArrowLeft size={16} className="rotate-180" />
+        <ArrowLeft size={16} />
+        Back to Championships
       </Link>
     </div>
   )
@@ -400,6 +444,7 @@ function RegistrationWizard({
   championship, selectedEvents, setSelectedEvents,
   paymentMethod, setPaymentMethod, bankSlip, setBankSlip,
   total, handleNext, handleBack, handleComplete, setErrors,
+  submitting, submitError,
 }) {
   return (
     <div className="max-w-4xl mx-auto">
@@ -450,6 +495,12 @@ function RegistrationWizard({
         )}
       </AnimatePresence>
 
+      {submitError && (
+        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          {submitError}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mt-8">
         <div>
           {step > 1 && (
@@ -473,10 +524,23 @@ function RegistrationWizard({
         ) : (
           <button
             onClick={handleComplete}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20"
+            disabled={submitting}
+            className="inline-flex items-center gap-2 px-8 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <CheckCircle size={18} />
-            Complete Registration
+            {submitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckCircle size={18} />
+                Complete Registration
+              </>
+            )}
           </button>
         )}
       </div>
@@ -493,10 +557,23 @@ function RegistrationWizard({
         ) : (
           <button
             onClick={handleComplete}
-            className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20"
+            disabled={submitting}
+            className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <CheckCircle size={18} />
-            Complete Registration
+            {submitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Submitting...
+              </>
+            ) : (
+              <>
+                <CheckCircle size={18} />
+                Complete Registration
+              </>
+            )}
           </button>
         )}
       </div>
