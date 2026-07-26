@@ -17,6 +17,8 @@ import TestPage from './pages/test/test'
 import TermsAndConditions from './pages/TermsAndConditions'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import ForgetPassword from './pages/Forget-Password'
+import PreviousResultsPage from './pages/PreviousResultsPage'
+import PreviousResultDetailPage from './pages/PreviousResultDetailPage'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
 
@@ -42,6 +44,8 @@ export default function App() {
             <Route path="/test" element={<TestPage/>}/>
             <Route path="/terms" element={<TermsAndConditions />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/previous-results" element={<PreviousResultsPage />} />
+            <Route path="/previous-results/:id" element={<PreviousResultDetailPage />} />
           </Routes>
         </div>
       </div>

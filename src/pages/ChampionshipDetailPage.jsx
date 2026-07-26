@@ -20,7 +20,7 @@ export default function ChampionshipDetailPage() {
   const { championshipId } = useParams()
   const [championship, setChampionship] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('program')
+  const [activeTab, setActiveTab] = useState('final-results')
   const [user, setUser] = useState(null)
   const [finalResults, setFinalResults] = useState(null)
   const [finalResultsLoading, setFinalResultsLoading] = useState(false)

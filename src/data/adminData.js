@@ -182,12 +182,15 @@ export const adminChampionships = [
 
 export const eventCategories = {
   'Track Events': {
-    Sprints: ['100m', '200m', '400m'],
+    Sprints: ['50m','60m','70m','80m',],
+    '':['100m', '200m', '300m', '400m'],
     'Middle Distance': ['800m', '1500m'],
-    'Long Distance': ['3000m', '5000m', '10000m'],
-    Hurdles: ['100m Hurdles', '110m Hurdles', '400m Hurdles'],
-    'Relays': ['4x100m Relay', '4x400m Relay', '4x800m Relay'],
+    Hurdles: ['50m Hurdles', '60m Hurdles', '70m Hurdles', '80m Hurdles', '100m Hurdles', '110m Hurdles','300m Hurdles', '400m Hurdles'],
+    'Long Distance': ['3000m', '5000m', '10000m', ],
+    
+    'Relays': ['4x100m Relay', '4x400m Relay', '4x800m Relay', 'Long Medley', 'Short Medley'],
     'Steeplechase': ['3000m Steeplechase'],
+    'Marathon': ['Marathon'],
   },
   'Field Events': {
     Jumps: ['Long Jump', 'Triple Jump', 'High Jump', 'Pole Vault'],
@@ -196,10 +199,29 @@ export const eventCategories = {
   'Combined Events': {
     'Men\'s Decathlon': ['Decathlon'],
     'Women\'s Heptathlon': ['Heptathlon'],
+   
+  },
+
+  'Walking Events': {
+    '20km Race Walking': ['Race Walking'],
+    '5000m Race Walk': ['5000m Race Walk'],
+    '800m Race Walk': ['800m Race Walk'],
+    '15000m Race Walk': ['15000m Race Walk'],
+    '3000m Race Walk': ['3000m Race Walk'],
+    '5000m Race Walk': ['5000m Race Walk'],
+    '10000m Race Walk': ['10000m Race Walk'],
+  },
+
+  'Other Events': {
+    'MBT': ['MBT']
   },
 }
 
 export const flatEvents = [
+  { id: '50m', name: '50m', category: 'Track', group: 'Sprints' },
+  { id: '60m', name: '60m', category: 'Track', group: 'Sprints' },
+  { id: '70m', name: '70m', category: 'Track', group: 'Sprints' },
+  { id: '80m', name: '80m', category: 'Track', group: 'Sprints' },
   { id: '100m', name: '100m', category: 'Track', group: 'Sprints' },
   { id: '200m', name: '200m', category: 'Track', group: 'Sprints' },
   { id: '400m', name: '400m', category: 'Track', group: 'Sprints' },
@@ -215,6 +237,7 @@ export const flatEvents = [
   { id: '4x100', name: '4x100m Relay', category: 'Track', group: 'Relays' },
   { id: '4x400', name: '4x400m Relay', category: 'Track', group: 'Relays' },
   { id: '4x800', name: '4x800m Relay', category: 'Track', group: 'Relays' },
+  { id: 'marathon', name: 'Marathon', category: 'Track', group: 'Marathon' },
   { id: 'lj', name: 'Long Jump', category: 'Field', group: 'Jumps' },
   { id: 'tj', name: 'Triple Jump', category: 'Field', group: 'Jumps' },
   { id: 'hj', name: 'High Jump', category: 'Field', group: 'Jumps' },
@@ -225,6 +248,14 @@ export const flatEvents = [
   { id: 'jt', name: 'Javelin Throw', category: 'Field', group: 'Throws' },
   { id: 'dec', name: 'Decathlon', category: 'Combined', group: "Men's Decathlon" },
   { id: 'hep', name: 'Heptathlon', category: 'Combined', group: "Women's Heptathlon" },
+  { id: 'marathon', name: 'Marathon', category: 'Combined', group: 'Marathon' },
+  { id: '20km', name: '20km Race Walking', category: 'Walking', group: '20km Race Walking' },
+  { id: '5000rw', name: '5,000m Race Walk', category: 'Walking', group: '5000m Race Walk' },
+  { id: '800rw', name: '800m Race Walk', category: 'Walking', group: '800m Race Walk' },
+  { id: '15000rw', name: '15,000m Race Walk', category: 'Walking', group: '15000m Race Walk' },
+  { id: '3000rw', name: '3,000m Race Walk', category: 'Walking', group: '3000m Race Walk' },
+  { id: '10000rw', name: '10,000m Race Walk', category: 'Walking', group: '10000m Race Walk' },
+
 ]
 
 export const adminStaffMembers = [

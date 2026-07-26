@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { eventCategories } from '../../data/adminData'
+import { flatEvents } from '../../data/adminData'
 
 export default function EventSelector({ selectedEvents, onChange }) {
   const toggleEvent = (eventId) => {
@@ -9,9 +9,37 @@ export default function EventSelector({ selectedEvents, onChange }) {
     onChange(updated)
   }
 
+  const selectAll = () => {
+    const allIds = flatEvents.map(e => e.id)
+    const allSelected = allIds.length === selectedEvents.length && allIds.every(id => selectedEvents.includes(id))
+    onChange(allSelected ? [] : allIds)
+  }
+
+  const grouped = flatEvents.reduce((acc, event) => {
+    const key = event.category
+    if (!acc[key]) acc[key] = {}
+    if (!acc[key][event.group]) acc[key][event.group] = []
+    acc[key][event.group].push(event)
+    return acc
+  }, {})
+
+  const allIds = flatEvents.map(e => e.id)
+  const allSelected = allIds.length > 0 && allIds.every(id => selectedEvents.includes(id))
+
   return (
     <div className="space-y-6">
-      {Object.entries(eventCategories).map(([category, groups]) => (
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-bold text-[#0F172A]">Events</h4>
+        <button
+          type="button"
+          onClick={selectAll}
+          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-primary/30 text-primary hover:bg-primary/5 transition-colors"
+        >
+          {allSelected ? 'Deselect All' : 'Select All'}
+        </button>
+      </div>
+
+      {Object.entries(grouped).map(([category, groups]) => (
         <div key={category}>
           <h4 className="text-sm font-bold text-[#0F172A] mb-3">{category}</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -20,11 +48,10 @@ export default function EventSelector({ selectedEvents, onChange }) {
                 <h5 className="text-xs font-semibold text-[#64748B] uppercase tracking-wider mb-2">{groupName}</h5>
                 <div className="space-y-1.5">
                   {events.map((event) => {
-                    const eventId = event.toLowerCase().replace(/[\s.'"]/g, '').replace('100mhurdles', '100h').replace('110mhurdles', '110h').replace('400mhurdles', '400h').replace(/4x(\d+)mrelay/, '4x$1').replace('3,000m', '3000').replace('5,000m', '5000').replace('10,000m', '10000').replace('men\'s', '').replace('women\'s', '')
-                    const isSelected = selectedEvents.includes(eventId)
+                    const isSelected = selectedEvents.includes(event.id)
                     return (
                       <label
-                        key={event}
+                        key={event.id}
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 ${
                           isSelected
                             ? 'bg-primary/5 text-primary border border-primary/20'
@@ -34,10 +61,10 @@ export default function EventSelector({ selectedEvents, onChange }) {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => toggleEvent(eventId)}
+                          onChange={() => toggleEvent(event.id)}
                           className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/30 accent-primary"
                         />
-                        <span className="text-sm font-medium">{event}</span>
+                        <span className="text-sm font-medium">{event.name}</span>
                       </label>
                     )
                   })}

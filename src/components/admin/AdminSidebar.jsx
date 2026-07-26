@@ -25,6 +25,7 @@ const navItems = [
   { name: 'Google Sheets', path: '/admin/google-sheets', icon: Table },
   { name: 'Certificate Printing', path: '/admin/certificates', icon: Printer },
   { name: 'User Management', path: '/admin/users', icon: Users },
+  { name: 'Previous Results', path: '/admin/previous-results', icon: FileText },
   { name: 'Settings', path: '/admin/settings', icon: Settings },
 ]
 

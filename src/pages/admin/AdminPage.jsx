@@ -11,6 +11,7 @@ import CertificatesPage from './modules/CertificatesPage'
 import UsersPage from './modules/UsersPage'
 import RegisteredAthletesPage from './modules/RegisteredAthletesPage'
 import SettingsPage from './modules/SettingsPage'
+import PreviousResultsPage from './modules/PreviousResultsPage'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import Loader from '../../components/loader/Loader'
@@ -84,6 +85,7 @@ export default function AdminPage() {
                 <Route path="/certificates" element={<CertificatesPage />} />
                 <Route path="/users" element={<UsersPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/previous-results" element={<PreviousResultsPage />} />
                 <Route path="*" element={<DashboardPage />} />
               </Routes>:<Loader/>}
             </motion.div>

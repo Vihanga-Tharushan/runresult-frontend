@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
 
 const tabs = [
-  
-  { id: 'program', label: 'Program' },
-  { id: 'start-lists', label: 'Start Lists' },
-  { id: 'heat-results', label: 'Heat Results' },
   { id: 'final-results', label: 'Final Results' },
+  { id: 'heat-results', label: 'Heat Results' },
+  { id: 'start-lists', label: 'Start Lists' },
+  { id: 'program', label: 'Program' },
+  
+  
+  
 ]
 
 export default function ResultTabs({ activeTab, onTabChange }) {

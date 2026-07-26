@@ -8,6 +8,7 @@ const pageTitles = {
   '/admin/google-sheets': 'Google Sheets',
   '/admin/certificates': 'Certificate Printing',
   '/admin/users': 'User Management',
+  '/admin/previous-results': 'Previous Results',
   '/admin/settings': 'Settings',
 }
 
@@ -27,6 +28,7 @@ export default function AdminHeader({ title, action }) {
           {location.pathname === '/admin/google-sheets' && 'Integrate Google Sheets for data management'}
           {location.pathname === '/admin/certificates' && 'Manage certificate printing and templates'}
           {location.pathname === '/admin/users' && 'Manage staff accounts'}
+          {location.pathname === '/admin/previous-results' && 'Archive completed championship results'}
           {location.pathname === '/admin/settings' && 'Configure system settings'}
         </p>
       </div>

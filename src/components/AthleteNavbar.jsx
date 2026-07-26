@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Trophy, BarChart3, Menu, X, LogOut } from 'lucide-react'
+import { Home, Trophy, BarChart3, FileArchive, Menu, X, LogOut } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
 const navLinks = [
   { name: 'Home', path: '/athlete/dashboard', icon: Home },
   { name: 'Championships', path: '/athlete/championships', icon: Trophy },
-  { name: 'Results', path: '/athlete/results', icon: BarChart3 }
+  { name: 'Live Results', path: '/athlete/results', icon: BarChart3 },
+  { name: 'Previous Results', path: '/previous-results', icon: FileArchive }
 ]
 
 export default function AthleteNavbar() {

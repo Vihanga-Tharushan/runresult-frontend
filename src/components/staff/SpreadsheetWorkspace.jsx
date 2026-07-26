@@ -80,7 +80,9 @@ export default function SpreadsheetWorkspace({ sheetUrl, championshipName }) {
 
       <div
         ref={containerRef}
-        className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+        className={`bg-white border border-gray-100 shadow-sm overflow-hidden ${
+          isFullscreen ? 'fixed inset-0 z-9999 rounded-none border-0 flex flex-col' : 'rounded-2xl'
+        }`}
       >
         {!sheetUrl || !hasValidUrl ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
@@ -121,7 +123,11 @@ export default function SpreadsheetWorkspace({ sheetUrl, championshipName }) {
               ref={iframeRef}
               src={embedUrl}
               title={`${championshipName || 'Spreadsheet'} - Google Sheets`}
-              className={`w-full h-[600px] lg:h-[700px] transition-opacity duration-300 ${loading ? 'opacity-0 absolute' : 'opacity-100'}`}
+              className={`w-full transition-opacity duration-300 ${
+                isFullscreen
+                  ? 'flex-1 h-full'
+                  : 'h-150 lg:h-175'
+              } ${loading ? 'opacity-0 absolute' : 'opacity-100'}`}
               onLoad={() => setLoading(false)}
               allowFullScreen
             />

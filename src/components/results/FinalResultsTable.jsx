@@ -7,40 +7,49 @@ import EmptyState from './EmptyState'
 
 export default function FinalResultsTable({ finalData, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedEvent, setSelectedEvent] = useState('')
+  const [eventNumber, setEventNumber] = useState('')
 
   const events = finalData ? Object.values(finalData) : []
 
+  const eventNames = useMemo(() => [...new Set(events.map((e) => e.name))], [events])
+
   const filteredEvents = useMemo(() => {
-    if (!searchQuery.trim()) return events
-    const q = searchQuery.toLowerCase()
-    return events
-      .map((event) => ({
-        ...event,
-        results: event.results.filter(
-          (r) =>
-            r.athlete.toLowerCase().includes(q) ||
-            r.club.toLowerCase().includes(q) ||
-            r.country.toLowerCase().includes(q) ||
-            r.bib.toString().includes(q) ||
-            (r.members && r.members.some((m) => m.name.toLowerCase().includes(q)))
-        ),
-      }))
-      .filter((event) => event.results.length > 0)
-  }, [events, searchQuery])
+    let result = events
+
+    if (selectedEvent) {
+      result = result.filter((e) => e.name === selectedEvent)
+    }
+
+    if (eventNumber.trim()) {
+      result = result.filter((e) => String(e.id).includes(eventNumber.trim()))
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result
+        .map((event) => ({
+          ...event,
+          results: event.results.filter(
+            (r) =>
+              r.athlete.toLowerCase().includes(q) ||
+              r.club.toLowerCase().includes(q) ||
+              r.country.toLowerCase().includes(q) ||
+              r.bib.toString().includes(q) ||
+              (r.members && r.members.some((m) => m.name.toLowerCase().includes(q)))
+          ),
+        }))
+        .filter((event) => event.results.length > 0)
+    }
+
+    return result
+  }, [events, searchQuery, selectedEvent, eventNumber])
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
-            <div className="h-5 bg-gray-200 rounded w-1/3 mb-4" />
-            <div className="space-y-3">
-              {[1, 2, 3].map((j) => (
-                <div key={j} className="h-4 bg-gray-100 rounded w-full" />
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-primary rounded-full animate-spin" />
+        <span className="text-sm font-medium text-[#64748B]">Loading results...</span>
       </div>
     )
   }
@@ -68,6 +77,23 @@ export default function FinalResultsTable({ finalData, loading }) {
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
           />
         </div>
+        <select
+          value={selectedEvent}
+          onChange={(e) => setSelectedEvent(e.target.value)}
+          className="w-full sm:w-56 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+        >
+          <option value="">All Events</option>
+          {eventNames.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
+        <input
+          type="number"
+          value={eventNumber}
+          onChange={(e) => setEventNumber(e.target.value)}
+          placeholder="Event No."
+          className="w-full sm:w-36 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
+        />
       </div>
 
       <div className="space-y-4">
@@ -83,8 +109,8 @@ export default function FinalResultsTable({ finalData, loading }) {
               transition={{ duration: 0.4, delay: ei * 0.06 }}
             >
               <EventAccordion
-                title={`E: No: ${event.id} — ${event.name}`}
-                subtitle={`${event.category} • ${event.date}`}
+                title={`E: No: ${event.id} — ${event.name} — ${event.category}`}
+                subtitle={event.date}
                 defaultOpen={true}
               >
                 <div className="overflow-x-auto">
@@ -152,6 +178,25 @@ export default function FinalResultsTable({ finalData, loading }) {
                                 ) : <span className="text-xs text-[#64748B]">-</span>}
                               </td>
                             </motion.tr>
+                            <tr className="md:hidden">
+                              <td colSpan={8} className="px-4 py-2 border-t border-gray-100 bg-gray-50/40">
+                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                                  {r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">School:</span> {r.club}</span>}
+                                  {r.country && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Zone:</span> {r.country}</span>}
+                                  {r.medal && <span className="flex items-center gap-1"><span className="font-semibold text-[#0F172A]">Medal:</span> <MedalBadge type={r.medal} /></span>}
+                                  {r.records && r.records.length > 0 && (
+                                    <span className="flex items-center gap-1 flex-wrap">
+                                      <span className="font-semibold text-[#0F172A]">Remarks:</span>
+                                      {r.records.map((rec, i) => (
+                                        <span key={i} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                          {rec}
+                                        </span>
+                                      ))}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
                             {r.members && r.members.length > 0 && r.members.map((m, mi) => (
                               <tr key={`m-${ri}-${mi}`} className="bg-gray-50/40">
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50" />
