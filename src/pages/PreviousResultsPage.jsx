@@ -57,39 +57,41 @@ export default function PreviousResultsPage() {
     >
       <Nav />
 
-      <div className="pt-20 lg:pt-24">
-        <section className="py-8 lg:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-10"
-            >
-              <h1 className="text-3xl lg:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-3">Previous Results</h1>
-              <p className="text-[#64748B] text-sm lg:text-base max-w-2xl mx-auto">
-                Browse archived championship results. View or download official result documents from completed championships.
-              </p>
-            </motion.div>
+      <section className="pt-24 lg:pt-28 pb-8 lg:pb-10 bg-[#FCFCFC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h3 className="text-3xl sm:text-4xl lg:text-3xl font-extrabold text-primary mt-2">
+              Previous Results
+            </h3>
+          </motion.div>
+        </div>
+      </section>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="max-w-md mx-auto mb-10"
-            >
-              <div className="relative">
-                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search championships..."
-                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
-                />
-              </div>
-            </motion.div>
+      <section className="pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="max-w-md mx-auto mb-10"
+          >
+            <div className="relative">
+              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search championships..."
+                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+              />
+            </div>
+          </motion.div>
 
-            {loading ? (
+          {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
@@ -193,9 +195,8 @@ export default function PreviousResultsPage() {
                 })}
               </div>
             )}
-          </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       <Footer />
     </motion.main>

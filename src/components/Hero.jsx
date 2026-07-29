@@ -23,9 +23,9 @@ export default function Hero() {
             transition={{ duration: 0.6, ease: 'easeOut' }}
           >
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight text-primary mb-6">
-              EVERY GAME 
+              ATHLETICS 
               <br />
-              RESULT INSTANTLY
+              LIVE FOR YOU 
             </h1>
 
             <p className="text-lg text-primary-dark/90 leading-relaxed mb-8 max-w-xl">
@@ -39,14 +39,14 @@ export default function Hero() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary-dark transition-all duration-200 shadow-lg"
               >
                 <Trophy size={18} />
-                View Results
+                Live Results
               </Link>
               <Link
                 to="/register"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-lg"
               >
                 <User size={18} />
-                Register Now
+                Online Registration
               </Link>
             </div>
           </motion.div>
