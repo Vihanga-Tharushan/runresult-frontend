@@ -4,9 +4,8 @@ const tabs = [
   { id: 'final-results', label: 'Final Results' },
   { id: 'heat-results', label: 'Heat Results' },
   { id: 'start-lists', label: 'Start Lists' },
+  { id: 'all-athletes', label: 'All Athletes' },
   { id: 'program', label: 'Program' },
-  
-  
   
 ]
 

@@ -12,6 +12,7 @@ import ProgramTimeline from '../components/results/ProgramTimeline'
 import StartListTable from '../components/results/StartListTable'
 import HeatResultsTable from '../components/results/HeatResultsTable'
 import FinalResultsTable from '../components/results/FinalResultsTable'
+import AllAthletesTable from '../components/results/AllAthletesTable'
 import { PageSkeleton } from '../components/results/LoadingSkeleton'
 
 const API = import.meta.env.VITE_API_URL
@@ -24,6 +25,10 @@ export default function ChampionshipDetailPage() {
   const [user, setUser] = useState(null)
   const [finalResults, setFinalResults] = useState(null)
   const [finalResultsLoading, setFinalResultsLoading] = useState(false)
+  const [heatResults, setHeatResults] = useState(null)
+  const [heatResultsLoading, setHeatResultsLoading] = useState(false)
+  const [athletes, setAthletes] = useState([])
+  const [athletesLoading, setAthletesLoading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -53,6 +58,29 @@ export default function ChampionshipDetailPage() {
       .then((res) => setFinalResults(res.data.events))
       .catch(() => setFinalResults(null))
       .finally(() => setFinalResultsLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasHeatResults = sheets.heatResults?.connected && sheets.heatResults?.url
+    if (!hasHeatResults) return
+
+    setHeatResultsLoading(true)
+    axios.get(API + `/api/results/heat/${championship.championship_id}`)
+      .then((res) => setHeatResults(res.data.events))
+      .catch(() => setHeatResults(null))
+      .finally(() => setHeatResultsLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
+
+    setAthletesLoading(true)
+    axios.get(API + `/api/registrations/championship/${championship.championship_id}`)
+      .then((res) => setAthletes(res.data.registrations || []))
+      .catch(() => setAthletes([]))
+      .finally(() => setAthletesLoading(false))
   }, [championship])
 
   const Nav = user?.role === 'athlete' ? AthleteNavbar : Navbar
@@ -111,14 +139,15 @@ export default function ChampionshipDetailPage() {
 
   const sheets = championship.googleSheets || {}
   const hasStartList = sheets.startList?.connected && sheets.startList?.url
-  const hasHeatResults = sheets.heatResults?.connected && sheets.heatResults?.url
   const hasFinalResults = sheets.finalResults?.connected && sheets.finalResults?.url
+  const athleteCount = athletes.length || championship.athleteCount || 0
 
   const tabContent = {
     program: <ProgramTimeline program={program} />,
     'start-lists': <StartListTable startListData={hasStartList ? {} : null} />,
-    'heat-results': <HeatResultsTable heatData={hasHeatResults ? {} : null} />,
+    'heat-results': <HeatResultsTable heatData={heatResults} loading={heatResultsLoading} />,
     'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} />,
+    'all-athletes': <AllAthletesTable registrations={athletes} loading={athletesLoading} championship={championship} />,
   }
 
   return (
@@ -131,7 +160,7 @@ export default function ChampionshipDetailPage() {
 
       <div >
     
-        <ChampionshipHeader championship={championship} />
+        <ChampionshipHeader championship={{ ...championship, athleteCount }} />
 
         <section className="py-8 lg:py-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
