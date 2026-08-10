@@ -123,8 +123,8 @@ export default function FinalResultsTable({ finalData, loading }) {
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">School</th>
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Zone</th>
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Performance</th>
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Medal</th>
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Remarks</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Medal</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -163,9 +163,7 @@ export default function FinalResultsTable({ finalData, loading }) {
                                   {r.performance}
                                 </span>
                               </td>
-                              <td className="px-4 lg:px-5 py-3 border-t border-gray-100 hidden sm:table-cell">
-                                {r.medal ? <MedalBadge type={r.medal} /> : <span className="text-xs text-[#64748B]">-</span>}
-                              </td>
+                             
                               <td className="px-4 lg:px-5 py-3 border-t border-gray-100 hidden sm:table-cell">
                                 {r.records && r.records.length > 0 ? (
                                   <div className="flex items-center gap-1 flex-wrap">
@@ -176,6 +174,9 @@ export default function FinalResultsTable({ finalData, loading }) {
                                     ))}
                                   </div>
                                 ) : <span className="text-xs text-[#64748B]">-</span>}
+                              </td>
+                               <td className="px-4 lg:px-5 py-3 border-t border-gray-100 hidden sm:table-cell">
+                                {r.medal ? <MedalBadge type={r.medal} /> : <span className="text-xs text-[#64748B]">-</span>}
                               </td>
                             </motion.tr>
                             <tr className="md:hidden">
