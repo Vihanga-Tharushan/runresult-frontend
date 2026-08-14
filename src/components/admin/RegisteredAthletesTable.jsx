@@ -2,11 +2,20 @@ import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight,
-  Eye, X, Mail, Phone, MapPin, Building2, Calendar, Hash,
-  Filter, SlidersHorizontal, Download, User,
+  Eye, X, Mail, Hash,
+  SlidersHorizontal, User, Save, Loader2,
 } from 'lucide-react'
+import axios from 'axios'
+import toast from 'react-hot-toast'
 import StatusBadge from './StatusBadge'
 import EmptyState from './EmptyState'
+
+const API = import.meta.env.VITE_API_URL
+
+function authHeaders() {
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
 const PAGE_SIZE = 25
 
 function resolveEventName(eventId, championshipEvents) {
@@ -40,7 +49,7 @@ function FilterSelect({ label, value, onChange, options }) {
   )
 }
 
-export default function RegisteredAthletesTable({ registrations, loading, championship }) {
+export default function RegisteredAthletesTable({ registrations, loading, championship, onUpdate }) {
   const [search, setSearch] = useState('')
   const [filters, setFilters] = useState({
     event: '',
@@ -456,14 +465,89 @@ export default function RegisteredAthletesTable({ registrations, loading, champi
       {/* Detail Modal */}
       <AnimatePresence>
         {detailReg && (
-          <RegistrationDetailModal registration={detailReg} onClose={() => setDetailReg(null)} />
+          <RegistrationDetailModal
+            registration={detailReg}
+            championship={championship}
+            onClose={() => setDetailReg(null)}
+            onUpdate={onUpdate}
+          />
         )}
       </AnimatePresence>
     </div>
   )
 }
 
-function RegistrationDetailModal({ registration: reg, onClose }) {
+function RegistrationDetailModal({ registration: reg, championship, onClose, onUpdate }) {
+  const [form, setForm] = useState({
+    fullName: reg.fullName || '',
+    nameWithInitials: reg.nameWithInitials || '',
+    gender: reg.gender || '',
+    dateOfBirth: reg.dateOfBirth || '',
+    ageCategory: reg.ageCategory || '',
+    nic: reg.nic || '',
+    athleteEmail: reg.athleteEmail || '',
+    mobile: reg.mobile || '',
+    institution: reg.institution || '',
+    district: reg.address?.district || '',
+    addressLine1: reg.address?.addressLine1 || '',
+    addressLine2: reg.address?.addressLine2 || '',
+    selectedEvents: [...(reg.selectedEvents || [])],
+    totalFee: reg.totalFee || 0,
+    receiptNumber: reg.receiptNumber || '',
+    paymentStatus: reg.paymentStatus || 'pending',
+    registrationStatus: reg.registrationStatus || 'pending',
+  })
+  const [saving, setSaving] = useState(false)
+
+  const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
+
+  const toggleEvent = (id) => {
+    setForm(prev => {
+      const selected = prev.selectedEvents.includes(id)
+        ? prev.selectedEvents.filter(e => e !== id)
+        : [...prev.selectedEvents, id]
+      return { ...prev, selectedEvents: selected }
+    })
+  }
+
+  const handleSave = async () => {
+    if (!form) return
+    setSaving(true)
+    try {
+      const res = await axios.put(API + `/api/registrations/${reg._id}`, {
+        fullName: form.fullName,
+        nameWithInitials: form.nameWithInitials,
+        gender: form.gender,
+        dateOfBirth: form.dateOfBirth,
+        ageCategory: form.ageCategory,
+        nic: form.nic,
+        athleteEmail: form.athleteEmail,
+        mobile: form.mobile,
+        institution: form.institution,
+        address: {
+          district: form.district,
+          addressLine1: form.addressLine1,
+          addressLine2: form.addressLine2,
+        },
+        selectedEvents: form.selectedEvents,
+        totalFee: Number(form.totalFee) || 0,
+        receiptNumber: form.receiptNumber,
+        paymentStatus: form.paymentStatus,
+        registrationStatus: form.registrationStatus,
+      }, { headers: authHeaders() })
+      toast.success('Registration updated successfully')
+      onUpdate?.(res.data.registration)
+      onClose()
+    } catch {
+      toast.error('Failed to update registration')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+  const selectClass = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-[#0F172A] focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+
   return (
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       <motion.div
@@ -478,7 +562,7 @@ function RegistrationDetailModal({ registration: reg, onClose }) {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="relative bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+        className="relative bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
@@ -505,11 +589,11 @@ function RegistrationDetailModal({ registration: reg, onClose }) {
           <div className="flex flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-[#64748B]">Payment:</span>
-              <StatusBadge status={reg.paymentStatus} />
+              <StatusBadge status={form.paymentStatus} />
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-[#64748B]">Registration:</span>
-              <StatusBadge status={reg.registrationStatus} />
+              <StatusBadge status={form.registrationStatus} />
             </div>
           </div>
 
@@ -520,12 +604,28 @@ function RegistrationDetailModal({ registration: reg, onClose }) {
               Personal Information
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <DetailField icon={User} label="Full Name" value={reg.fullName} />
-              <DetailField icon={User} label="Name with Initials" value={reg.nameWithInitials} />
-              <DetailField icon={User} label="Gender" value={reg.gender} />
-              <DetailField icon={Calendar} label="Date of Birth" value={reg.dateOfBirth ? new Date(reg.dateOfBirth).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : ''} />
-              <DetailField icon={Calendar} label="Age Category" value={reg.ageCategory} />
-              <DetailField icon={Hash} label="NIC" value={reg.nic} />
+              <EditField label="Full Name" required>
+                <input type="text" value={form.fullName} onChange={e => update('fullName', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Name with Initials">
+                <input type="text" value={form.nameWithInitials} onChange={e => update('nameWithInitials', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Gender" required>
+                <select value={form.gender} onChange={e => update('gender', e.target.value)} className={selectClass}>
+                  <option value="">Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </EditField>
+              <EditField label="Date of Birth" required>
+                <input type="date" value={form.dateOfBirth} onChange={e => update('dateOfBirth', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Age Category">
+                <input type="text" value={form.ageCategory} onChange={e => update('ageCategory', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="NIC">
+                <input type="text" value={form.nic} onChange={e => update('nic', e.target.value)} className={inputClass} />
+              </EditField>
             </div>
           </div>
 
@@ -536,51 +636,89 @@ function RegistrationDetailModal({ registration: reg, onClose }) {
               Contact Information
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <DetailField icon={Mail} label="Email" value={reg.athleteEmail} />
-              <DetailField icon={Phone} label="Mobile" value={reg.mobile} />
-              <DetailField icon={Building2} label="Club / School / Institute" value={reg.institution} />
-              <DetailField icon={MapPin} label="District" value={reg.address?.district} />
+              <EditField label="Email" required>
+                <input type="email" value={form.athleteEmail} onChange={e => update('athleteEmail', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Mobile" required>
+                <input type="tel" value={form.mobile} onChange={e => update('mobile', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Club / School / Institute">
+                <input type="text" value={form.institution} onChange={e => update('institution', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="District">
+                <input type="text" value={form.district} onChange={e => update('district', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Address Line 1">
+                <input type="text" value={form.addressLine1} onChange={e => update('addressLine1', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Address Line 2">
+                <input type="text" value={form.addressLine2} onChange={e => update('addressLine2', e.target.value)} className={inputClass} />
+              </EditField>
             </div>
-            {(reg.address?.addressLine1 || reg.address?.addressLine2) && (
-              <div className="mt-3 p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs font-semibold text-[#64748B] mb-1">Address</p>
-                <p className="text-sm text-[#0F172A]">
-                  {[reg.address.addressLine1, reg.address.addressLine2].filter(Boolean).join(', ')}
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Events */}
           <div>
             <h4 className="text-sm font-bold text-[#0F172A] mb-3 flex items-center gap-2">
               <Hash size={14} className="text-primary" />
-              Selected Events ({reg.selectedEvents?.length || 0})
+              Selected Events ({form.selectedEvents.length})
             </h4>
-            <div className="flex flex-wrap gap-2">
-              {(reg.selectedEvents || []).map(e => (
-                <span key={e} className="inline-flex items-center px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/10 text-xs font-semibold text-primary">
-                  {resolveEventName(e, championship?.selectedEvents)}
-                </span>
-              ))}
-            </div>
+            {championship?.selectedEvents?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {championship.selectedEvents.map((eventName, idx) => {
+                  const id = String(idx)
+                  const checked = form.selectedEvents.includes(id)
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => toggleEvent(id)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                        checked
+                          ? 'bg-primary/10 border-primary/30 text-primary'
+                          : 'bg-white border-gray-200 text-[#64748B] hover:border-gray-300'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${checked ? 'bg-primary' : 'bg-gray-300'}`} />
+                      {eventName}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-[#64748B]">
+                {(reg.selectedEvents || []).map(e => resolveEventName(e, championship?.selectedEvents)).join(', ') || 'No events selected'}
+              </p>
+            )}
           </div>
 
           {/* Payment Info */}
           <div>
             <h4 className="text-sm font-bold text-[#0F172A] mb-3">Payment Details</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <EditField label="Receipt Number">
+                <input type="text" value={form.receiptNumber} onChange={e => update('receiptNumber', e.target.value)} className={inputClass} placeholder="Cash deposit receipt no." />
+              </EditField>
+              <EditField label="Total Fee (Rs.)">
+                <input type="number" value={form.totalFee} onChange={e => update('totalFee', e.target.value)} className={inputClass} />
+              </EditField>
+              <EditField label="Payment Status">
+                <select value={form.paymentStatus} onChange={e => update('paymentStatus', e.target.value)} className={selectClass}>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </EditField>
+              <EditField label="Registration Status">
+                <select value={form.registrationStatus} onChange={e => update('registrationStatus', e.target.value)} className={selectClass}>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </EditField>
               <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs text-[#64748B] mb-1">Method</p>
-                <p className="text-sm font-semibold text-[#0F172A] capitalize">{reg.paymentMethod || '—'}</p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs text-[#64748B] mb-1">Total Fee</p>
-                <p className="text-sm font-semibold text-[#0F172A]">Rs. {(reg.totalFee || 0).toLocaleString()}</p>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-xl">
-                <p className="text-xs text-[#64748B] mb-1">Registered On</p>
-                <p className="text-sm font-semibold text-[#0F172A]">
+                <p className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-1">Registered On</p>
+                <p className="text-sm text-[#0F172A]">
                   {reg.createdAt ? new Date(reg.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
                 </p>
               </div>
@@ -589,27 +727,36 @@ function RegistrationDetailModal({ registration: reg, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 rounded-b-2xl">
+        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 rounded-b-2xl flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#64748B] hover:bg-gray-50 hover:text-[#0F172A] transition-all duration-200"
+            className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#64748B] hover:bg-gray-50 hover:text-[#0F172A] transition-all duration-200"
           >
-            Close
+            Cancel
           </button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
+            {saving ? 'Saving...' : 'Save Changes'}
+          </motion.button>
         </div>
       </motion.div>
     </div>
   )
 }
 
-function DetailField({ icon: Icon, label, value }) {
+function EditField({ label, required, children }) {
   return (
-    <div className="flex items-start gap-2.5 p-3 bg-gray-50 rounded-xl">
-      <Icon size={14} className="text-[#64748B] mt-0.5 shrink-0" />
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider">{label}</p>
-        <p className="text-sm text-[#0F172A] truncate">{value || '—'}</p>
-      </div>
+    <div>
+      <label className="block text-[10px] font-semibold text-[#64748B] uppercase tracking-wider mb-1.5">
+        {label} {required && <span className="text-red-400">*</span>}
+      </label>
+      {children}
     </div>
   )
 }

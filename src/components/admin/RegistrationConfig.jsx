@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Globe, Lock, CheckCircle } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Globe, Lock, CheckCircle, Table, AlertTriangle } from 'lucide-react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 import PricingTable from './PricingTable'
@@ -32,6 +33,9 @@ export default function RegistrationConfig() {
 
   const isPublished = selectedChamp?.registrationStatus === 'open'
 
+  const registrationSheet = selectedChamp?.googleSheets?.registration
+  const hasRegistrationSheet = !!(registrationSheet?.url && registrationSheet?.connected)
+
   function selectChamp(id) {
     const champ = championships.find(c => c._id === id)
     setSelectedChamp(champ)
@@ -50,6 +54,14 @@ export default function RegistrationConfig() {
       })
       .catch(() => toast.error('Failed to update championship'))
       .finally(() => setSaving(false))
+  }
+
+  const handlePublishClick = () => {
+    if (!hasRegistrationSheet) {
+      toast.error('Connect the Registration Sheet before publishing registration')
+      return
+    }
+    setShowPublishDialog(true)
   }
 
   const handlePublish = () => {
@@ -120,6 +132,30 @@ export default function RegistrationConfig() {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8">
         <h4 className="text-base font-bold text-[#0F172A] mb-4">Registration Controls</h4>
+
+        {!hasRegistrationSheet && (
+          <div className="mb-4 p-4 rounded-xl border border-amber-200 bg-amber-50">
+            <div className="flex items-start gap-3">
+              <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-amber-800">
+                  Registration Sheet not connected
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  A Google Sheets Registration Sheet must be connected before you can publish registration.
+                  Registration data is synced to this sheet.
+                </p>
+                <Link
+                  to="/admin/google-sheets"
+                  className="mt-2 inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 underline underline-offset-2"
+                >
+                  <Table size={14} /> Connect Registration Sheet
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center gap-4">
           {isPublished ? (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
@@ -129,7 +165,7 @@ export default function RegistrationConfig() {
             </motion.button>
           ) : (
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}
-              onClick={() => setShowPublishDialog(true)} disabled={saving}
+              onClick={handlePublishClick} disabled={saving}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 transition-all shadow-sm disabled:opacity-50">
               <Globe size={18} /> Publish Registration
             </motion.button>

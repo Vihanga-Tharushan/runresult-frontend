@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { CheckCircle, ArrowRight, Download, Calendar, MapPin } from 'lucide-react'
 
-export default function RegistrationSuccess({ championship, formData, selectedEvents, total, paymentMethod, registrationNumber, bibNumber, paymentStatus }) {
+export default function RegistrationSuccess({ championship, selectedEvents, total, receiptNumber, registrationNumber, bibNumber, paymentStatus }) {
   const getEventName = (id) => {
     const event = championship.events.find((e) => e.id === id)
     return event ? event.name : id
@@ -79,19 +79,24 @@ export default function RegistrationSuccess({ championship, formData, selectedEv
 
               <div className="flex justify-between">
                 <span className="text-sm text-[#64748B]">Payment Method</span>
-                <span className="text-sm font-semibold text-[#0F172A] capitalize">
-                  {paymentMethod === 'online' ? 'Online Payment' : 'Bank Deposit'}
-                </span>
+                <span className="text-sm font-semibold text-[#0F172A] capitalize">Cash Deposit</span>
               </div>
+
+              {receiptNumber && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-[#64748B]">Receipt Number</span>
+                  <span className="text-sm font-semibold text-[#0F172A]">{receiptNumber}</span>
+                </div>
+              )}
 
               <div className="flex justify-between">
                 <span className="text-sm text-[#64748B]">Payment Status</span>
                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  (paymentStatus || (paymentMethod === 'online' ? 'paid' : 'pending')) === 'paid'
+                  (paymentStatus || 'pending') === 'paid'
                     ? 'text-emerald-600 bg-emerald-50 border border-emerald-200'
                     : 'text-amber-600 bg-amber-50 border border-amber-200'
                 }`}>
-                  {(paymentStatus || (paymentMethod === 'online' ? 'paid' : 'pending')) === 'paid' ? 'Paid' : 'Pending Verification'}
+                  {(paymentStatus || 'pending') === 'paid' ? 'Paid' : 'Pending Verification'}
                 </span>
               </div>
             </div>

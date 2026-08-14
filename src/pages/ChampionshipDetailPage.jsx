@@ -13,6 +13,8 @@ import StartListTable from '../components/results/StartListTable'
 import HeatResultsTable from '../components/results/HeatResultsTable'
 import FinalResultsTable from '../components/results/FinalResultsTable'
 import AllAthletesTable from '../components/results/AllAthletesTable'
+import PointsTable from '../components/results/PointsTable'
+import MedalsTable from '../components/results/MedalsTable'
 import { PageSkeleton } from '../components/results/LoadingSkeleton'
 
 const API = import.meta.env.VITE_API_URL
@@ -27,8 +29,14 @@ export default function ChampionshipDetailPage() {
   const [finalResultsLoading, setFinalResultsLoading] = useState(false)
   const [heatResults, setHeatResults] = useState(null)
   const [heatResultsLoading, setHeatResultsLoading] = useState(false)
+  const [startList, setStartList] = useState(null)
+  const [startListLoading, setStartListLoading] = useState(false)
   const [athletes, setAthletes] = useState([])
   const [athletesLoading, setAthletesLoading] = useState(false)
+  const [points, setPoints] = useState(null)
+  const [pointsLoading, setPointsLoading] = useState(false)
+  const [medals, setMedals] = useState(null)
+  const [medalsLoading, setMedalsLoading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -75,12 +83,51 @@ export default function ChampionshipDetailPage() {
 
   useEffect(() => {
     if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasStartList = sheets.startList?.connected && sheets.startList?.url
+    if (!hasStartList) return
+
+    setStartListLoading(true)
+    axios.get(API + `/api/results/startlist/${championship.championship_id}`)
+      .then((res) => setStartList(res.data.events))
+      .catch(() => setStartList(null))
+      .finally(() => setStartListLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
 
     setAthletesLoading(true)
     axios.get(API + `/api/registrations/championship/${championship.championship_id}`)
       .then((res) => setAthletes(res.data.registrations || []))
       .catch(() => setAthletes([]))
       .finally(() => setAthletesLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasPoints = sheets.points?.connected && sheets.points?.url
+    if (!hasPoints) return
+
+    setPointsLoading(true)
+    axios.get(API + `/api/results/points/${championship.championship_id}`)
+      .then((res) => setPoints(res.data))
+      .catch(() => setPoints(null))
+      .finally(() => setPointsLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasMedals = sheets.medals?.connected && sheets.medals?.url
+    if (!hasMedals) return
+
+    setMedalsLoading(true)
+    axios.get(API + `/api/results/medals/${championship.championship_id}`)
+      .then((res) => setMedals(res.data))
+      .catch(() => setMedals(null))
+      .finally(() => setMedalsLoading(false))
   }, [championship])
 
   const Nav = user?.role === 'athlete' ? AthleteNavbar : Navbar
@@ -138,15 +185,16 @@ export default function ChampionshipDetailPage() {
     : []
 
   const sheets = championship.googleSheets || {}
-  const hasStartList = sheets.startList?.connected && sheets.startList?.url
   const hasFinalResults = sheets.finalResults?.connected && sheets.finalResults?.url
   const athleteCount = athletes.length || championship.athleteCount || 0
 
   const tabContent = {
     program: <ProgramTimeline program={program} />,
-    'start-lists': <StartListTable startListData={hasStartList ? {} : null} />,
+    'start-lists': <StartListTable startListData={startList} loading={startListLoading} />,
     'heat-results': <HeatResultsTable heatData={heatResults} loading={heatResultsLoading} />,
     'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} />,
+    points: <PointsTable pointsData={points} loading={pointsLoading} />,
+    medals: <MedalsTable medalsData={medals} loading={medalsLoading} />,
     'all-athletes': <AllAthletesTable registrations={athletes} loading={athletesLoading} championship={championship} />,
   }
 

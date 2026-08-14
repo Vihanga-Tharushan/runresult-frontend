@@ -88,7 +88,7 @@ export default function PreviousResultsPage() {
                 <ChevronLeft size={16} /> Back to Previous Results
               </button>
             </div>
-            <PreviousResultForm previousResult={editingResult} onSave={handleSave} onCancel={() => { setView('list'); setEditingResult(null) }} onDelete={handleDelete} />
+            <PreviousResultForm previousResult={editingResult} previousResults={previousResults} onSave={handleSave} onCancel={() => { setView('list'); setEditingResult(null) }} onDelete={handleDelete} />
           </motion.div>
         )}
       </AnimatePresence>

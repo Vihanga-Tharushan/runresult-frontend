@@ -29,8 +29,7 @@ export default function ChampionshipRegistrationPage() {
     address: { district: '', addressLine1: '', addressLine2: '' },
   })
   const [selectedEvents, setSelectedEvents] = useState([])
-  const [paymentMethod, setPaymentMethod] = useState('')
-  const [bankSlip, setBankSlip] = useState(null)
+  const [receiptNumber, setReceiptNumber] = useState('')
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -145,8 +144,7 @@ export default function ChampionshipRegistrationPage() {
 
   const validateStep3 = () => {
     const errs = {}
-    if (!paymentMethod) errs.method = 'Please select a payment method'
-    if (paymentMethod === 'bank-slip' && !bankSlip) errs.bankSlip = 'Please upload your bank deposit slip'
+    if (!receiptNumber.trim()) errs.receiptNumber = 'Please enter your cash deposit receipt number'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -181,7 +179,7 @@ export default function ChampionshipRegistrationPage() {
         institution: formData.institution,
         address: formData.address,
         selectedEvents,
-        paymentMethod,
+        receiptNumber,
         totalFee: total,
       }, {
         headers: {
@@ -253,7 +251,7 @@ export default function ChampionshipRegistrationPage() {
                 formData={formData}
                 selectedEvents={selectedEvents}
                 total={total}
-                paymentMethod={paymentMethod}
+                receiptNumber={receiptNumber}
                 registrationNumber={registrationResult?.registrationNumber}
                 bibNumber={registrationResult?.bibNumber}
                 paymentStatus={registrationResult?.paymentStatus}
@@ -323,10 +321,8 @@ export default function ChampionshipRegistrationPage() {
                           championship={mappedChampionship}
                           selectedEvents={selectedEvents}
                           setSelectedEvents={setSelectedEvents}
-                          paymentMethod={paymentMethod}
-                          setPaymentMethod={setPaymentMethod}
-                          bankSlip={bankSlip}
-                          setBankSlip={setBankSlip}
+                          receiptNumber={receiptNumber}
+                          setReceiptNumber={setReceiptNumber}
                           total={total}
                           fee={fee}
                           rawTotal={rawTotal}
@@ -442,7 +438,7 @@ function RegistrationClosedContent() {
 function RegistrationWizard({
   step, formData, handleFormChange, errors,
   championship, selectedEvents, setSelectedEvents,
-  paymentMethod, setPaymentMethod, bankSlip, setBankSlip,
+  receiptNumber, setReceiptNumber,
   total, handleNext, handleBack, handleComplete, setErrors,
   submitting, submitError,
 }) {
@@ -474,10 +470,8 @@ function RegistrationWizard({
         {step === 3 && (
           <PaymentMethods
             key="step3"
-            method={paymentMethod}
-            onMethodChange={(m) => { setPaymentMethod(m); setErrors({}) }}
-            bankSlip={bankSlip}
-            onBankSlipChange={setBankSlip}
+            receiptNumber={receiptNumber}
+            onReceiptNumberChange={(value) => { setReceiptNumber(value); setErrors({}) }}
             total={total}
             errors={errors}
           />
@@ -488,9 +482,8 @@ function RegistrationWizard({
             championship={championship}
             formData={formData}
             selectedEvents={selectedEvents}
-            paymentMethod={paymentMethod}
+            receiptNumber={receiptNumber}
             total={total}
-            bankSlip={bankSlip}
           />
         )}
       </AnimatePresence>

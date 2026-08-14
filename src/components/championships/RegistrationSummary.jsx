@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion'
-import { CheckCircle, CreditCard, Upload, User, Layers, DollarSign, MapPin, Calendar, Building2, FileText } from 'lucide-react'
-import StatusBadge from './StatusBadge'
+import { CheckCircle, Receipt, User, Layers, DollarSign } from 'lucide-react'
 
-export default function RegistrationSummary({ championship, formData, selectedEvents, paymentMethod, total, bankSlip }) {
+export default function RegistrationSummary({ championship, formData, selectedEvents, receiptNumber }) {
   const fee = selectedEvents.length * championship.feePerEvent
   const rawTotal = championship.baseFee + fee
   const cappedTotal = championship.maxFee ? Math.min(rawTotal, championship.maxFee) : rawTotal
@@ -14,7 +13,7 @@ export default function RegistrationSummary({ championship, formData, selectedEv
 
   const isFormComplete = formData.fullName && formData.gender && formData.dateOfBirth && formData.email && formData.mobile
   const isEventsSelected = selectedEvents.length > 0
-  const isPaymentSelected = paymentMethod === 'online' || (paymentMethod === 'bank-slip' && bankSlip)
+  const isPaymentSelected = receiptNumber?.trim()
 
   return (
     <motion.div
@@ -57,21 +56,15 @@ export default function RegistrationSummary({ championship, formData, selectedEv
         </SummarySection>
 
         <SummarySection
-          icon={paymentMethod === 'online' ? CreditCard : Upload}
-          title={paymentMethod === 'online' ? 'Online Payment' : 'Bank Deposit Slip'}
+          icon={Receipt}
+          title="Payment Receipt"
           status={isPaymentSelected ? 'complete' : 'incomplete'}
         >
-          {paymentMethod === 'online' ? (
-            <div className="flex items-center gap-2 text-sm text-emerald-600">
-              <CheckCircle size={16} />
-              Online payment ready
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-[#0F172A]">
-              <FileText size={16} className="text-primary" />
-              {bankSlip?.name || 'Bank slip ready'}
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-sm text-[#0F172A]">
+            <Receipt size={16} className="text-primary" />
+            {receiptNumber || 'Receipt number not entered'}
+          </div>
+          <p className="text-xs text-[#64748B] mt-2">Payment will be verified by the organizers.</p>
         </SummarySection>
 
         <SummarySection

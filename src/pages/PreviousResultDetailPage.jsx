@@ -140,7 +140,7 @@ export default function PreviousResultDetailPage() {
                   </p>
                   <p className="flex items-center gap-1.5">
                     <Calendar size={16} className="text-primary shrink-0" />
-                    <span>{new Date(result.fromDate).toLocaleDateString()} - {new Date(result.toDate).toLocaleDateString()}</span>
+                    <span>{result.year || '-'}</span>
                   </p>
                 </div>
 

@@ -49,8 +49,11 @@ export default function RegisteredAthletesPage() {
     return championships.filter(c => c.name.toLowerCase().includes(q))
   }, [championships, searchQuery])
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank')
+  const handleUpdate = (updated) => {
+    setRegistrations(prev => prev.map(r => (r._id === updated._id ? updated : r)))
+  }
+
+  const handlePrint = () => {    const printWindow = window.open('', '_blank')
     const champName = selectedChamp?.name || 'Championship'
     const champEvents = selectedChamp?.selectedEvents || []
 
@@ -238,6 +241,7 @@ export default function RegisteredAthletesPage() {
             registrations={registrations}
             loading={loadingRegs}
             championship={selectedChamp}
+            onUpdate={handleUpdate}
           />
         </div>
       )}

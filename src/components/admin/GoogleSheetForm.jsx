@@ -30,6 +30,8 @@ const sheetTypes = [
   { key: 'startList', label: 'Start List Sheet' },
   { key: 'heatResults', label: 'Heat Results Sheet' },
   { key: 'finalResults', label: 'Final Results Sheet' },
+  { key: 'points', label: 'Points Sheet' },
+  { key: 'medals', label: 'Medals Sheet' },
 ]
 
 const defaultSheets = {
@@ -37,6 +39,8 @@ const defaultSheets = {
   startList: { url: '', connected: false },
   heatResults: { url: '', connected: false },
   finalResults: { url: '', connected: false },
+  points: { url: '', connected: false },
+  medals: { url: '', connected: false },
 }
 
 export default function GoogleSheetForm() {
@@ -55,7 +59,7 @@ export default function GoogleSheetForm() {
   const handleSelectChamp = (id) => {
     const champ = championships.find(c => c._id === id)
     setSelectedChamp(champ)
-    setSheets(champ?.googleSheets || defaultSheets)
+    setSheets({ ...defaultSheets, ...(champ?.googleSheets || {}) })
     setPreviewKey(null)
   }
 

@@ -1,26 +1,45 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, X, FileUp, Link as LinkIcon, Loader2, Trash2, FileText, Table } from 'lucide-react'
+import { X, FileUp, Link as LinkIcon, Loader2, Trash2, FileText, Table } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ConfirmDialog from './ConfirmDialog'
 import mediaUpload from '../../utils/mediaUpload'
 
-export default function PreviousResultForm({ previousResult, onSave, onCancel, onDelete }) {
+export default function PreviousResultForm({ previousResult, previousResults, onSave, onCancel, onDelete }) {
   const isEditing = !!previousResult
   const [uploading, setUploading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const championOptions = useMemo(() => {
+    const names = new Set((previousResults || []).map(r => r.championshipName).filter(Boolean))
+    if (previousResult?.championshipName) names.add(previousResult.championshipName)
+    return [...names].sort((a, b) => a.localeCompare(b))
+  }, [previousResults, previousResult])
+
+  const isKnownChampion = !!previousResult?.championshipName && championOptions.includes(previousResult.championshipName)
+
   const [form, setForm] = useState({
     championshipName: previousResult?.championshipName || '',
     venue: previousResult?.venue || '',
-    fromDate: previousResult?.fromDate || '',
-    toDate: previousResult?.toDate || '',
+    year: previousResult?.year || '',
     description: previousResult?.description || '',
     resultType: previousResult?.resultType || '',
     fileUrl: previousResult?.fileUrl || '',
     driveLink: previousResult?.driveLink || '',
   })
+  const [champMode, setChampMode] = useState(isKnownChampion ? 'existing' : 'new')
 
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }))
+
+  const handleChampSelect = (value) => {
+    if (value === '__new__') {
+      setChampMode('new')
+      update('championshipName', '')
+    } else {
+      setChampMode('existing')
+      update('championshipName', value)
+    }
+  }
 
   const fileInputRef = useRef(null)
 
@@ -45,7 +64,6 @@ export default function PreviousResultForm({ previousResult, onSave, onCancel, o
     setUploading(true)
     try {
       const url = await mediaUpload(file)
-      const isSpreadsheet = ['.xlsx', '.xls', '.csv'].includes(ext)
       update('fileUrl', url)
       update('resultType', ext === '.pdf' ? 'pdf' : 'spreadsheet')
       toast.success('File uploaded successfully')
@@ -65,7 +83,7 @@ export default function PreviousResultForm({ previousResult, onSave, onCancel, o
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    if (!form.championshipName || !form.venue || !form.fromDate || !form.toDate) {
+    if (!form.championshipName || !form.venue || !form.year) {
       toast.error('Please fill in all required fields')
       return
     }
@@ -88,6 +106,7 @@ export default function PreviousResultForm({ previousResult, onSave, onCancel, o
     onSave({
       ...previousResult,
       ...form,
+      year: Number(form.year),
     })
   }
 
@@ -103,12 +122,29 @@ export default function PreviousResultForm({ previousResult, onSave, onCancel, o
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">Championship Name <span className="text-red-400">*</span></label>
-            <input type="text" value={form.championshipName} onChange={e => update('championshipName', e.target.value)} required
-              placeholder="e.g. National Athletics Championship 2025"
-              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+            <select
+              value={champMode === 'existing' ? form.championshipName : '__new__'}
+              onChange={e => handleChampSelect(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+            >
+              <option value="" disabled>Select a championship...</option>
+              {championOptions.map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+              <option value="__new__">+ New Championship</option>
+            </select>
+            {champMode === 'new' && (
+              <input
+                type="text"
+                value={form.championshipName}
+                onChange={e => update('championshipName', e.target.value)}
+                placeholder="Enter new championship name..."
+                className="w-full mt-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+              />
+            )}
           </div>
 
-          <div className="md:col-span-2">
+          <div>
             <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">Venue / Place <span className="text-red-400">*</span></label>
             <input type="text" value={form.venue} onChange={e => update('venue', e.target.value)} required
               placeholder="e.g. National Athletics Stadium"
@@ -116,14 +152,10 @@ export default function PreviousResultForm({ previousResult, onSave, onCancel, o
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">From Date <span className="text-red-400">*</span></label>
-            <input type="date" value={form.fromDate} onChange={e => update('fromDate', e.target.value)} required
-              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">To Date <span className="text-red-400">*</span></label>
-            <input type="date" value={form.toDate} onChange={e => update('toDate', e.target.value)} required
-              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
+            <label className="block text-sm font-semibold text-[#0F172A] mb-1.5">Year <span className="text-red-400">*</span></label>
+            <input type="number" value={form.year} onChange={e => update('year', e.target.value)} required
+              placeholder="e.g. 2025" min="2000" max="2100"
+              className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all" />
           </div>
 
           <div className="md:col-span-2">

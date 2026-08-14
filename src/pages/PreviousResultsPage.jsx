@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Calendar, FileText, Table, Link as LinkIcon, Download, ExternalLink, Search } from 'lucide-react'
+import { MapPin, Calendar, FileText, Table, Link as LinkIcon, Download, ExternalLink, Search, X } from 'lucide-react'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import AthleteNavbar from '../components/AthleteNavbar'
@@ -25,6 +25,8 @@ export default function PreviousResultsPage() {
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedChampion, setSelectedChampion] = useState('')
+  const [selectedYear, setSelectedYear] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -44,10 +46,25 @@ export default function PreviousResultsPage() {
 
   const Nav = user?.role === 'athlete' ? AthleteNavbar : Navbar
 
-  const filteredResults = previousResults.filter(r =>
-    r.championshipName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.venue.toLowerCase().includes(searchQuery.toLowerCase())
+  const championNames = useMemo(
+    () => [...new Set(previousResults.map(r => r.championshipName).filter(Boolean))].sort((a, b) => a.localeCompare(b)),
+    [previousResults]
   )
+
+  const years = useMemo(
+    () => [...new Set(previousResults.map(r => r.year).filter(Boolean))].sort((a, b) => b - a),
+    [previousResults]
+  )
+
+  const filteredResults = previousResults.filter(r => {
+    const matchesSearch =
+      !searchQuery.trim() ||
+      r.championshipName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.venue.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesChampion = !selectedChampion || r.championshipName === selectedChampion
+    const matchesYear = !selectedYear || String(r.year) === String(selectedYear)
+    return matchesSearch && matchesChampion && matchesYear
+  })
 
   return (
     <motion.main
@@ -77,17 +94,47 @@ export default function PreviousResultsPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="max-w-md mx-auto mb-10"
+            className="max-w-4xl mx-auto mb-10"
           >
-            <div className="relative">
-              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search championships..."
-                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
-              />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search championships..."
+                  className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                />
+              </div>
+              <select
+                value={selectedChampion}
+                onChange={e => setSelectedChampion(e.target.value)}
+                className="w-full sm:w-64 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+              >
+                <option value="">All Championships</option>
+                {championNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={e => setSelectedYear(e.target.value)}
+                className="w-full sm:w-40 px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+              >
+                <option value="">All Years</option>
+                {years.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+              {(searchQuery || selectedChampion || selectedYear) && (
+                <button
+                  onClick={() => { setSearchQuery(''); setSelectedChampion(''); setSelectedYear('') }}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-[#64748B] hover:bg-gray-50 hover:text-[#0F172A] transition-all duration-200 shadow-sm"
+                >
+                  <X size={15} /> Clear
+                </button>
+              )}
             </div>
           </motion.div>
 
@@ -118,10 +165,10 @@ export default function PreviousResultsPage() {
                   <FileText size={28} className="text-gray-300" />
                 </div>
                 <h3 className="text-lg font-bold text-[#0F172A] mb-1">
-                  {searchQuery ? 'No results found' : 'No previous results available'}
+                  {searchQuery || selectedChampion || selectedYear ? 'No results found' : 'No previous results available'}
                 </h3>
                 <p className="text-sm text-[#64748B] max-w-sm">
-                  {searchQuery ? 'Try adjusting your search terms.' : 'Archived championship results will appear here.'}
+                  {searchQuery || selectedChampion || selectedYear ? 'Try adjusting your search terms or filters.' : 'Archived championship results will appear here.'}
                 </p>
               </motion.div>
             ) : (
@@ -159,7 +206,7 @@ export default function PreviousResultsPage() {
                           </p>
                           <p className="flex items-center gap-1.5">
                             <Calendar size={14} className="text-primary shrink-0" />
-                            <span>{new Date(result.fromDate).toLocaleDateString()} - {new Date(result.toDate).toLocaleDateString()}</span>
+                            <span>{result.year || '-'}</span>
                           </p>
                         </div>
 
