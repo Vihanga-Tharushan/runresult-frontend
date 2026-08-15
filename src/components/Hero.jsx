@@ -6,7 +6,7 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       <div
-        className="absolute inset-0 bg-cover bg-[position:75%_center] bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-position-[70%_center] bg-no-repeat"
         style={{
           backgroundImage: `url('/run3.png' )`,
         }}
