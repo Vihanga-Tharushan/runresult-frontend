@@ -1,11 +1,37 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { CheckCircle, ArrowRight, Download, Calendar, MapPin } from 'lucide-react'
+import toast from 'react-hot-toast'
+import generateReceiptPdf from '../../utils/generateReceiptPdf'
 
-export default function RegistrationSuccess({ championship, selectedEvents, total, receiptNumber, registrationNumber, bibNumber, paymentStatus }) {
+export default function RegistrationSuccess({ championship, formData, selectedEvents, total, receiptNumber, registrationNumber, bibNumber, paymentStatus }) {
+  const [downloading, setDownloading] = useState(false)
+
   const getEventName = (id) => {
     const event = championship.events.find((e) => e.id === id)
     return event ? event.name : id
+  }
+
+  const handleDownloadReceipt = () => {
+    setDownloading(true)
+    try {
+      generateReceiptPdf({
+        championship,
+        formData,
+        selectedEvents,
+        total,
+        receiptNumber,
+        registrationNumber,
+        bibNumber,
+      })
+      toast.success('Receipt downloaded successfully')
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      toast.error('Failed to generate receipt. Please try again.')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   return (
@@ -108,12 +134,23 @@ export default function RegistrationSuccess({ championship, selectedEvents, tota
             transition={{ delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-3"
           >
-            <button className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-sm">
-              <Download size={17} />
-              Download Receipt
+            <button
+              onClick={handleDownloadReceipt}
+              disabled={downloading}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {downloading ? (
+                <svg className="animate-spin h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : (
+                <Download size={17} />
+              )}
+              {downloading ? 'Generating...' : 'Download Receipt'}
             </button>
             <Link
-              to="/dashboard"
+              to="/athlete/championships"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary font-semibold rounded-xl border-2 border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all duration-200"
             >
               View My Championships
