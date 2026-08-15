@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Eye, EyeOff, Mail, KeyRound, Lock, Trophy, BarChart3, Zap, CheckCircle } from 'lucide-react'
+import { ArrowLeft, Eye, EyeOff, Mail, KeyRound, Lock, Trophy, BarChart3, Zap, RotateCcw } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import toast from 'react-hot-toast'
@@ -18,6 +18,45 @@ export default function ForgetPassword() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [resendIn, setResendIn] = useState(0)
+  const [resendKey, setResendKey] = useState(0)
+  const resendTimer = useRef(null)
+
+  useEffect(() => {
+    if (step !== 'otp') return
+    if (resendTimer.current) clearInterval(resendTimer.current)
+    resendTimer.current = setInterval(() => {
+      setResendIn((prev) => {
+        if (prev <= 1) {
+          clearInterval(resendTimer.current)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => {
+      if (resendTimer.current) clearInterval(resendTimer.current)
+    }
+  }, [step, resendKey])
+
+  const requestOTP = async () => {
+    setLoading(true)
+    try {
+      await axios.post(import.meta.env.VITE_API_URL + "/api/users/send-otp", {
+        email: email.trim().toLowerCase(),
+      })
+      toast.success(`Verification code sent to ${email.trim()}`)
+      setErrors({})
+      setTouched({})
+      setStep('otp')
+      setResendIn(60)
+      setResendKey((k) => k + 1)
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to send OTP. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleSendOTP(e) {
     e.preventDefault()
@@ -26,24 +65,12 @@ export default function ForgetPassword() {
       setTouched({ email: true })
       return
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setErrors({ email: 'Please enter a valid email address' })
       setTouched({ email: true })
       return
     }
-
-    setLoading(true)
-    try {
-      await axios.get(import.meta.env.VITE_API_URL + "/api/users/send-otp/"+ email)
-      toast.success('OTP sent to your email' + email)
-      setErrors({})
-      setTouched({})
-      setStep('otp')
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to send OTP. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+    await requestOTP()
   }
 
   async function handleResetPassword(e) {
@@ -53,7 +80,7 @@ export default function ForgetPassword() {
     if (!otp.trim()) newErrors.otp = 'OTP is required'
     else if (otp.trim().length !== 6) newErrors.otp = 'OTP must be 6 digits'
     if (!newPassword) newErrors.newPassword = 'New password is required'
-    else if (newPassword.length < 4) newErrors.newPassword = 'Password must be at least 4 characters'
+    else if (newPassword.length < 6) newErrors.newPassword = 'Password must be at least 6 characters'
     if (!confirmPassword) newErrors.confirmPassword = 'Please confirm your password'
     else if (newPassword !== confirmPassword) newErrors.confirmPassword = 'Passwords do not match'
 
@@ -222,6 +249,7 @@ export default function ForgetPassword() {
                       type="text"
                       inputMode="numeric"
                       maxLength={6}
+                      autoFocus
                       value={otp}
                       onChange={(e) => {
                         const val = e.target.value.replace(/\D/g, '')
@@ -236,6 +264,22 @@ export default function ForgetPassword() {
                   {errors.otp && touched.otp && (
                     <p className="mt-1 text-xs text-red-500">{errors.otp}</p>
                   )}
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-[#64748B]">Code expires in 10 minutes</p>
+                    {resendIn > 0 ? (
+                      <span className="text-xs font-medium text-[#64748B]">Resend in {resendIn}s</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={requestOTP}
+                        disabled={loading}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0342B3] hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <RotateCcw size={12} />
+                        Resend code
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div>
@@ -264,6 +308,9 @@ export default function ForgetPassword() {
                   </div>
                   {errors.newPassword && touched.newPassword && (
                     <p className="mt-1 text-xs text-red-500">{errors.newPassword}</p>
+                  )}
+                  {!errors.newPassword && (
+                    <p className="mt-1 text-xs text-[#64748B]">Use at least 6 characters.</p>
                   )}
                 </div>
 
