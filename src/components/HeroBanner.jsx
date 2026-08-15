@@ -91,7 +91,7 @@ export default function HeroBanner() {
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
-            className="relative hidden lg:block"
+            className="relative"
           >
             <div className="relative">
               <div className="absolute -inset-4 bg-linear-to-br from-primary/5 via-primary/10 to-transparent rounded-4xl blur-2xl" />
@@ -100,7 +100,7 @@ export default function HeroBanner() {
                 <img
                   src="https://media.gettyimages.com/id/pha156000069/photo/male-runners-at-start-of-race-close-up.jpg?s=612x612&w=0&k=20&c=HWsoG4_HIsk8WrYVZpI38AToeZTC4EadYSbay86KJWc="
                   alt="Athlete sprinting on track"
-                  className="w-full h-130 object-cover"
+                  className="w-full h-64 sm:h-80 lg:h-130 object-cover object-right"
                 />
                 <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-t from-white/30 to-transparent z-10" />
               </div>
