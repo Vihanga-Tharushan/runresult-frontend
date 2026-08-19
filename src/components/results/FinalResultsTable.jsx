@@ -5,7 +5,7 @@ import MedalBadge from './MedalBadge'
 import EventAccordion from './EventAccordion'
 import EmptyState from './EmptyState'
 
-export default function FinalResultsTable({ finalData, loading }) {
+export default function FinalResultsTable({ finalData, loading, format = 'normal' }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedEvent, setSelectedEvent] = useState('')
   const [eventNumber, setEventNumber] = useState('')
@@ -36,6 +36,8 @@ export default function FinalResultsTable({ finalData, loading }) {
               r.club.toLowerCase().includes(q) ||
               r.country.toLowerCase().includes(q) ||
               r.bib.toString().includes(q) ||
+              (r.serviceNumber && r.serviceNumber.toLowerCase().includes(q)) ||
+              (r.rankTitle && r.rankTitle.toLowerCase().includes(q)) ||
               (r.members && r.members.some((m) => m.name.toLowerCase().includes(q)))
           ),
         }))
@@ -64,6 +66,9 @@ export default function FinalResultsTable({ finalData, loading }) {
     )
   }
 
+  const isArmy = format === 'army'
+  const showZone = format !== 'withoutZone' && !isArmy
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -73,7 +78,7 @@ export default function FinalResultsTable({ finalData, loading }) {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search athletes, schools, or zones..."
+            placeholder={isArmy ? 'Search names, regiments...' : 'Search athletes, schools, or zones...'}
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-200"
           />
         </div>
@@ -117,11 +122,14 @@ export default function FinalResultsTable({ finalData, loading }) {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50/80">
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Rank</th>
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Bib</th>
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Athlete</th>
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">School</th>
-                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Zone</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">{isArmy ? 'Place' : 'Rank'}</th>
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">{isArmy ? 'BIB' : 'Bib'}</th>
+                        {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Service No</th>}
+                        {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Rank</th>}
+                        <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">{isArmy ? 'Name' : 'Athlete'}</th>
+                        {!isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">School</th>}
+                        {showZone && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Zone</th>}
+                        {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Regiment</th>}
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Performance</th>
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Remarks</th>
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden sm:table-cell">Medal</th>
@@ -143,6 +151,8 @@ export default function FinalResultsTable({ finalData, loading }) {
                                 <span className="text-sm font-extrabold text-[#0F172A]">{r.rank}</span>
                               </td>
                               <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm font-semibold text-primary">{r.bib}</td>
+                              {isArmy && <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden lg:table-cell whitespace-nowrap">{r.serviceNumber}</td>}
+                              {isArmy && <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden md:table-cell whitespace-nowrap">{r.rankTitle}</td>}
                               <td className="px-4 lg:px-5 py-3 border-t border-gray-100">
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-semibold text-[#0F172A] whitespace-nowrap">{r.athlete}</span>
@@ -153,8 +163,9 @@ export default function FinalResultsTable({ finalData, loading }) {
                                   )}
                                 </div>
                               </td>
-                              <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden md:table-cell whitespace-nowrap">{r.club}</td>
-                              <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden lg:table-cell whitespace-nowrap">{r.country}</td>
+                              {!isArmy && <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden md:table-cell whitespace-nowrap">{r.club}</td>}
+                              {showZone && <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden lg:table-cell whitespace-nowrap">{r.country}</td>}
+                              {isArmy && <td className="px-4 lg:px-5 py-3 border-t border-gray-100 text-sm text-[#64748B] hidden md:table-cell whitespace-nowrap">{r.club}</td>}
                               <td className="px-4 lg:px-5 py-3 border-t border-gray-100">
                                 <span className={`text-sm font-bold font-mono ${
                                   r.performance === 'DNF' || r.performance === 'DQ' || r.performance === 'DNS'
@@ -182,8 +193,11 @@ export default function FinalResultsTable({ finalData, loading }) {
                             <tr className="md:hidden">
                               <td colSpan={8} className="px-4 py-2 border-t border-gray-100 bg-gray-50/40">
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                                  {r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">School:</span> {r.club}</span>}
-                                  {r.country && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Zone:</span> {r.country}</span>}
+                                  {isArmy && r.serviceNumber && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Service No:</span> {r.serviceNumber}</span>}
+                                  {isArmy && r.rankTitle && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Rank:</span> {r.rankTitle}</span>}
+                                  {!isArmy && r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">School:</span> {r.club}</span>}
+                                  {isArmy && r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Regiment:</span> {r.club}</span>}
+                                  {showZone && r.country && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Zone:</span> {r.country}</span>}
                                   {r.medal && <span className="flex items-center gap-1"><span className="font-semibold text-[#0F172A]">Medal:</span> <MedalBadge type={r.medal} /></span>}
                                   {r.records && r.records.length > 0 && (
                                     <span className="flex items-center gap-1 flex-wrap">
@@ -202,11 +216,14 @@ export default function FinalResultsTable({ finalData, loading }) {
                               <tr key={`m-${ri}-${mi}`} className="bg-gray-50/40">
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50" />
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 text-xs font-semibold text-primary/70">{m.bib}</td>
+                                {isArmy && <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden lg:table-cell" />}
+                                {isArmy && <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden md:table-cell" />}
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50">
                                   <span className="text-xs text-[#64748B] pl-3">{m.name}</span>
                                 </td>
-                                <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden md:table-cell" />
-                                <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden lg:table-cell" />
+                                {!isArmy && <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden md:table-cell" />}
+                                {showZone && <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden lg:table-cell" />}
+                                {isArmy && <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden md:table-cell" />}
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50" />
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden sm:table-cell" />
                                 <td className="px-4 lg:px-5 py-1.5 border-t border-gray-50 hidden sm:table-cell" />

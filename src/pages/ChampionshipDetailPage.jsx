@@ -62,7 +62,8 @@ export default function ChampionshipDetailPage() {
     if (!hasFinalResults) return
 
     setFinalResultsLoading(true)
-    axios.get(API + `/api/results/final/${championship.championship_id}`)
+    const format = championship.finalResultsFormat || 'normal'
+    axios.get(API + `/api/results/final/${championship.championship_id}?format=${format}`)
       .then((res) => setFinalResults(res.data.events))
       .catch(() => setFinalResults(null))
       .finally(() => setFinalResultsLoading(false))
@@ -192,7 +193,7 @@ export default function ChampionshipDetailPage() {
     program: <ProgramTimeline program={program} />,
     'start-lists': <StartListTable startListData={startList} loading={startListLoading} />,
     'heat-results': <HeatResultsTable heatData={heatResults} loading={heatResultsLoading} />,
-    'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} />,
+    'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} format={championship?.finalResultsFormat || 'normal'} />,
     points: <PointsTable pointsData={points} loading={pointsLoading} />,
     medals: <MedalsTable medalsData={medals} loading={medalsLoading} />,
     'all-athletes': <AllAthletesTable registrations={athletes} loading={athletesLoading} championship={championship} />,

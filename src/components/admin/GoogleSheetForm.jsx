@@ -43,10 +43,17 @@ const defaultSheets = {
   medals: { url: '', connected: false },
 }
 
+const formatOptions = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'withoutZone', label: 'Without Zone' },
+  { value: 'army', label: 'Army' },
+]
+
 export default function GoogleSheetForm() {
   const [championships, setChampionships] = useState([])
   const [selectedChamp, setSelectedChamp] = useState(null)
   const [sheets, setSheets] = useState(defaultSheets)
+  const [finalResultsFormat, setFinalResultsFormat] = useState('normal')
   const [previewKey, setPreviewKey] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -60,6 +67,7 @@ export default function GoogleSheetForm() {
     const champ = championships.find(c => c._id === id)
     setSelectedChamp(champ)
     setSheets({ ...defaultSheets, ...(champ?.googleSheets || {}) })
+    setFinalResultsFormat(champ?.finalResultsFormat || 'normal')
     setPreviewKey(null)
   }
 
@@ -72,7 +80,7 @@ export default function GoogleSheetForm() {
 
   const handleSave = () => {
     setSaving(true)
-    axios.put(API + `/api/championships/${selectedChamp._id}`, { googleSheets: sheets }, { headers: authHeaders() })
+    axios.put(API + `/api/championships/${selectedChamp._id}`, { googleSheets: sheets, finalResultsFormat }, { headers: authHeaders() })
       .then(res => {
         const updated = res.data.championship
         setChampionships(prev => prev.map(c => c._id === updated._id ? updated : c))
@@ -116,6 +124,26 @@ export default function GoogleSheetForm() {
             <div key={key} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-4 lg:p-5">
                 <SheetStatusCard label={label} sheet={sheets[key]} onUpdate={(val) => updateSheet(key, val)} />
+                {key === 'finalResults' && sheets[key]?.connected && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-sm font-semibold text-[#0F172A] mb-3">Results Format</p>
+                    <div className="flex flex-wrap gap-4">
+                      {formatOptions.map(({ value, label: optLabel }) => (
+                        <label key={value} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="finalResultsFormat"
+                            value={value}
+                            checked={finalResultsFormat === value}
+                            onChange={() => setFinalResultsFormat(value)}
+                            className="w-4 h-4 text-primary border-gray-300 focus:ring-primary"
+                          />
+                          <span className="text-sm text-[#64748B]">{optLabel}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {sheets[key]?.url && embedUrl && (
                 <div className="border-t border-gray-100">
