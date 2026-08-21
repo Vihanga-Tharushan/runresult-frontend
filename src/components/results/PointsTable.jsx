@@ -28,7 +28,7 @@ function PointsCard({ title, subtitle, rows, columns, highlight }) {
           <thead>
             <tr className="bg-gray-50/80">
               {columns.map((col, i) => (
-                <th key={i} className={`text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider ${col.hidden || ''}`}>
+                <th key={i} className={`px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider ${col.headClass || 'text-left'} ${col.hidden || ''}`}>
                   {col.label}
                 </th>
               ))}
@@ -103,14 +103,14 @@ export default function PointsTable({ pointsData, loading }) {
   const zoneColumns = [
     { label: 'Place', key: 'place', render: (r) => <RankBadge place={r.place} /> },
     { label: 'Zone/Company', key: 'zone', cellClass: 'text-sm font-semibold text-[#0F172A] whitespace-nowrap' },
-    { label: 'Points', key: 'points', cellClass: 'text-sm font-bold text-primary text-right', render: (r) => <span className="flex justify-end">{r.points}</span> },
+    { label: 'Points', key: 'points', headClass: 'text-right', cellClass: 'text-sm font-bold text-primary text-right', render: (r) => <span className="flex justify-end">{r.points}</span> },
   ]
 
   const schoolColumns = [
     { label: 'Place', key: 'place', render: (r) => <RankBadge place={r.place} /> },
     { label: 'School', key: 'school', cellClass: 'text-sm font-semibold text-[#0F172A] whitespace-nowrap' },
     { label: 'Zone/Company', key: 'zone', cellClass: 'text-sm text-[#64748B] whitespace-nowrap', hidden: 'hidden md:table-cell' },
-    { label: 'Points', key: 'points', cellClass: 'text-sm font-bold text-primary', render: (r) => <span className="flex justify-end">{r.points}</span> },
+    { label: 'Points', key: 'points', headClass: 'text-right', cellClass: 'text-sm font-bold text-primary text-right', render: (r) => <span className="flex justify-end">{r.points}</span> },
   ]
 
   return (
@@ -121,7 +121,7 @@ export default function PointsTable({ pointsData, loading }) {
             onClick={() => setView('zones')}
             className={`px-4 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${view === 'zones' ? 'bg-primary text-white' : 'text-[#64748B] hover:text-[#0F172A]'}`}
           >
-            Overall Zonal/company Points
+            Overall Points
           </button>
           <button
             onClick={() => setView('schools')}
@@ -146,7 +146,7 @@ export default function PointsTable({ pointsData, loading }) {
 
       {view === 'zones' ? (
         <PointsCard
-          title="Overall Zonal Points"
+          title="Overall Points"
           subtitle="Championship standings by zone"
           rows={zones}
           columns={zoneColumns}
