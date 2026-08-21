@@ -127,7 +127,7 @@ export default function FinalResultsTable({ finalData, loading, format = 'normal
                         {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Service No</th>}
                         {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Rank</th>}
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">{isArmy ? 'Name' : 'Athlete'}</th>
-                        {!isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">School</th>}
+                        {!isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Company/Affiliate:</th>}
                         {showZone && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden lg:table-cell">Zone</th>}
                         {isArmy && <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider hidden md:table-cell">Regiment</th>}
                         <th className="text-left px-4 lg:px-5 py-3 text-[11px] font-semibold text-[#64748B] uppercase tracking-wider">Performance</th>
@@ -195,7 +195,7 @@ export default function FinalResultsTable({ finalData, loading, format = 'normal
                                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
                                   {isArmy && r.serviceNumber && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Service No:</span> {r.serviceNumber}</span>}
                                   {isArmy && r.rankTitle && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Rank:</span> {r.rankTitle}</span>}
-                                  {!isArmy && r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">School:</span> {r.club}</span>}
+                                  {!isArmy && r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Company/Affiliate:</span> {r.club}</span>}
                                   {isArmy && r.club && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Regiment:</span> {r.club}</span>}
                                   {showZone && r.country && <span className="text-[#64748B]"><span className="font-semibold text-[#0F172A]">Zone:</span> {r.country}</span>}
                                   {r.medal && <span className="flex items-center gap-1"><span className="font-semibold text-[#0F172A]">Medal:</span> <MedalBadge type={r.medal} /></span>}
