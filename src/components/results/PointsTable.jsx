@@ -102,14 +102,14 @@ export default function PointsTable({ pointsData, loading }) {
 
   const zoneColumns = [
     { label: 'Place', key: 'place', render: (r) => <RankBadge place={r.place} /> },
-    { label: 'Zone', key: 'zone', cellClass: 'text-sm font-semibold text-[#0F172A] whitespace-nowrap' },
+    { label: 'Zone/Company', key: 'zone', cellClass: 'text-sm font-semibold text-[#0F172A] whitespace-nowrap' },
     { label: 'Points', key: 'points', cellClass: 'text-sm font-bold text-primary text-right', render: (r) => <span className="flex justify-end">{r.points}</span> },
   ]
 
   const schoolColumns = [
     { label: 'Place', key: 'place', render: (r) => <RankBadge place={r.place} /> },
     { label: 'School', key: 'school', cellClass: 'text-sm font-semibold text-[#0F172A] whitespace-nowrap' },
-    { label: 'Zone', key: 'zone', cellClass: 'text-sm text-[#64748B] whitespace-nowrap', hidden: 'hidden md:table-cell' },
+    { label: 'Zone/Company', key: 'zone', cellClass: 'text-sm text-[#64748B] whitespace-nowrap', hidden: 'hidden md:table-cell' },
     { label: 'Points', key: 'points', cellClass: 'text-sm font-bold text-primary', render: (r) => <span className="flex justify-end">{r.points}</span> },
   ]
 
@@ -121,7 +121,7 @@ export default function PointsTable({ pointsData, loading }) {
             onClick={() => setView('zones')}
             className={`px-4 py-2 text-xs font-semibold rounded-lg whitespace-nowrap transition-colors ${view === 'zones' ? 'bg-primary text-white' : 'text-[#64748B] hover:text-[#0F172A]'}`}
           >
-            Overall Zonal Points
+            Overall Zonal/company Points
           </button>
           <button
             onClick={() => setView('schools')}
