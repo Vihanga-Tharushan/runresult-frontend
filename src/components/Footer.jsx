@@ -118,11 +118,16 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-1 text-center">
             <p className="text-xs text-white/35">&copy; 2026 RUNRESULT. All Rights Reserved.</p>
-            <a href="tel:+94785718845" className="group text-xs text-white/35">
-              Designed &amp; Developed by{' '}
-              <span className="text-white/55 font-medium group-hover:text-white/80 transition-colors">Vihanga Tharushan</span>
-              <span className="text-white/0 group-hover:text-white/55 transition-all duration-300 ml-1">+94 78 571 8845</span>
-            </a>
+            <div className="text-sm text-white/70 font-medium flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+              <span>
+                Designed &amp; Developed by{' '}
+                <span className="text-white/80 font-semibold">Vihanga Tharushan</span>
+              </span>
+              <span className="hidden sm:inline text-white/40">|</span>
+              <a href="tel:+94785718845" className="hover:text-white transition-colors">+94 78 571 8845</a>
+              <span className="hidden sm:inline text-white/40">|</span>
+              <a href="mailto:vihangatharushan013@gmail.com" className="hover:text-white transition-colors">vihangatharushan013@gmail.com</a>
+            </div>
           </div>
         </div>
       </div>
