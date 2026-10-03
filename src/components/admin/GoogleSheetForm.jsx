@@ -6,24 +6,13 @@ import toast from 'react-hot-toast'
 import SheetStatusCard from './SheetStatusCard'
 import EmptyState from './EmptyState'
 import mediaUpload from '../../utils/mediaUpload'
+import { detectDocumentType, buildDocumentEmbedUrl, buildGoogleSheetEmbedUrl } from '../../utils/documentPreview'
 
 const API = import.meta.env.VITE_API_URL
 
 function authHeaders() {
   const token = localStorage.getItem('token')
   return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-function extractSheetId(url) {
-  if (!url) return null
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/)
-  return match ? match[1] : null
-}
-
-function getEmbedUrl(url) {
-  const id = extractSheetId(url)
-  if (!id) return null
-  return `https://docs.google.com/spreadsheets/d/${id}/preview`
 }
 
 const sheetTypes = [
@@ -180,12 +169,15 @@ export default function GoogleSheetForm() {
 
       <div className="space-y-4">
         {sheetTypes.map(({ key, label }) => {
-          const embedUrl = getEmbedUrl(sheets[key]?.url)
+          const isDocument = key === 'records' || key === 'trophies'
+          const embedUrl = isDocument
+            ? buildDocumentEmbedUrl(sheets[key]?.url, sheets[key]?.type)
+            : buildGoogleSheetEmbedUrl(sheets[key]?.url)
           const isPreviewing = previewKey === key
           return (
             <div key={key} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="p-4 lg:p-5">
-                {key === 'records' || key === 'trophies' ? (
+                {isDocument ? (
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="text-sm font-bold text-[#0F172A]">{label}</h4>
@@ -249,10 +241,19 @@ export default function GoogleSheetForm() {
                           <input
                             type="url"
                             value={sheets[key]?.url || ''}
-                            onChange={e => updateSheet(key, { url: e.target.value, connected: !!e.target.value, type: sheets[key]?.type || (key === 'records' || key === 'trophies' ? 'pdf' : 'sheet') })}
+                            onChange={e => updateSheet(key, {
+                              url: e.target.value,
+                              connected: !!e.target.value,
+                              type: detectDocumentType(e.target.value, sheets[key]?.type || 'pdf'),
+                            })}
                             placeholder="https://..."
                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
                           />
+                          {sheets[key]?.url && (
+                            <p className="mt-1.5 text-xs text-[#94A3B8]">
+                              Detected as <span className="font-semibold text-[#64748B]">{fileTypeOptions.find(o => o.value === sheets[key]?.type)?.label || 'Document'}</span>
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -321,45 +322,16 @@ export default function GoogleSheetForm() {
                          exit={{ height: 0, opacity: 0 }}
                          className="border-t border-gray-100"
                        >
-                         {(key === 'records' || key === 'trophies') && sheets[key]?.type === 'pdf' ? (
-                           <iframe
-                             src={`${sheets[key].url}#view=FitH&toolbar=0`}
-                             title={`${label} Preview`}
-                             className="w-full h-87.5 lg:h-112.5 bg-gray-50"
-                             allowFullScreen
-                           />
-                         ) : (key === 'records' || key === 'trophies') && sheets[key]?.type === 'spreadsheet' ? (
-                           <iframe
-                             src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(sheets[key].url)}`}
-                             title={`${label} Preview`}
-                             className="w-full h-87.5 lg:h-112.5 bg-gray-50"
-                             allowFullScreen
-                           />
-                         ) : (key === 'records' || key === 'trophies') && sheets[key]?.type === 'drive' ? (
-                           (() => {
-                             const driveMatch = sheets[key].url.match(/\/d\/([a-zA-Z0-9_-]+)/)
-                             const driveEmbed = driveMatch ? `https://drive.google.com/file/d/${driveMatch[1]}/preview` : null
-                             return driveEmbed ? (
-                               <iframe
-                                 src={driveEmbed}
-                                 title={`${label} Preview`}
-                                 className="w-full h-87.5 lg:h-112.5 bg-gray-50"
-                                 allowFullScreen
-                               />
-                             ) : (
-                               <div className="p-4 text-sm text-[#64748B] text-center">Invalid Google Drive link</div>
-                             )
-                           })()
-                         ) : embedUrl ? (
-                           <iframe
-                             src={embedUrl}
-                             title={`${label} Preview`}
-                             className="w-full h-87.5 lg:h-112.5 bg-gray-50"
-                             allowFullScreen
-                           />
-                         ) : (
-                           <div className="p-4 text-sm text-[#64748B] text-center">Preview not available for this file type</div>
-                         )}
+                          {embedUrl ? (
+                            <iframe
+                              src={embedUrl}
+                              title={`${label} Preview`}
+                              className="w-full h-87.5 lg:h-112.5 bg-gray-50"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <div className="p-4 text-sm text-[#64748B] text-center">Preview not available for this file type</div>
+                          )}
                        </motion.div>
                      )}
                    </AnimatePresence>

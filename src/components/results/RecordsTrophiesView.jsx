@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { FileText, Table, Link as LinkIcon, ExternalLink } from 'lucide-react'
+import { buildDocumentEmbedUrl, detectDocumentType } from '../../utils/documentPreview'
 
 const typeConfig = {
   pdf: { label: 'PDF', color: 'bg-red-50 text-red-600 border-red-100', icon: FileText },
@@ -26,8 +27,9 @@ export default function RecordsTrophiesView({ data, loading, title }) {
     )
   }
 
-  const type = data.type || 'sheet'
+  const type = detectDocumentType(data.url, data.type || 'sheet')
   const TypeIcon = typeConfig[type]?.icon || FileText
+  const embedUrl = buildDocumentEmbedUrl(data.url, type)
 
   return (
     <motion.div
@@ -44,60 +46,31 @@ export default function RecordsTrophiesView({ data, loading, title }) {
       </div>
 
       <div className="p-4 lg:p-6">
-        {type === 'pdf' && (
+        {embedUrl ? (
           <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
             <iframe
-              src={`${data.url}#view=FitH&toolbar=0`}
+              src={embedUrl}
               className="w-full h-[60vh] md:h-[75vh] lg:h-[95vh]"
               title={`${title} Preview`}
               allowFullScreen
             />
           </div>
-        )}
-
-        {(type === 'spreadsheet' || type === 'sheet') && (
-          <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
-            {(() => {
-              const id = data.url.match(/\/d\/([a-zA-Z0-9_-]+)/)
-              const embedUrl = id ? `https://docs.google.com/spreadsheets/d/${id[1]}/preview?rm=minimal&chrome=false&toolbar=0&showNav=0&showSheetTabs=0` : null
-              return embedUrl ? (
-                <iframe
-                  src={embedUrl}
-                  className="w-full h-[60vh] md:h-[75vh] lg:h-[95vh]"
-                  title={`${title} Preview`}
-                  allowFullScreen
-                />
-              ) : (
-                <iframe
-                  src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(data.url)}`}
-                  className="w-full h-[60vh] md:h-[75vh] lg:h-[95vh]"
-                  title={`${title} Preview`}
-                  allowFullScreen
-                />
-              )
-            })()}
+        ) : (
+          <div className="py-10 text-center">
+            <p className="text-sm text-[#64748B] mb-4">This document cannot be embedded.</p>
+            <a
+              href={data.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200"
+            >
+              <ExternalLink size={16} /> Open Document
+            </a>
           </div>
         )}
 
         {type === 'drive' && (
-          <div className="space-y-4">
-            {(() => {
-              const driveMatch = data.url.match(/\/d\/([a-zA-Z0-9_-]+)/)
-              if (driveMatch) {
-                const embedUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`
-                return (
-                  <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                    <iframe
-                      src={embedUrl}
-                      className="w-full h-[60vh] md:h-[75vh] lg:h-[85vh]"
-                      title={`${title} Preview`}
-                      allowFullScreen
-                    />
-                  </div>
-                )
-              }
-              return null
-            })()}
+          <div className="mt-4">
             <a
               href={data.url}
               target="_blank"
