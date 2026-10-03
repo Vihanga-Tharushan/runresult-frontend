@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, MapPin, Calendar, FileText, Table, Link as LinkIcon, Download, ExternalLink } from 'lucide-react'
+import { ArrowLeft, MapPin, Calendar, FileText, Table, Link as LinkIcon, ExternalLink } from 'lucide-react'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import AthleteNavbar from '../components/AthleteNavbar'
@@ -96,9 +96,9 @@ export default function PreviousResultDetailPage() {
     >
       <Nav />
 
-      <div className="pt-20 lg:pt-24">
+      <div className="pt-20 lg:pt-10">
         <section className="py-8 lg:py-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -118,20 +118,19 @@ export default function PreviousResultDetailPage() {
               transition={{ delay: 0.1 }}
               className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
             >
-              <div className="relative h-40 overflow-hidden bg-linear-to-br from-primary/5 to-primary/10 flex items-center justify-center">
-                <TypeIcon size={56} className="text-primary/20" />
-                <div className="absolute top-4 right-4">
-                  <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold border ${typeInfo.color}`}>
-                    <TypeIcon size={14} />
-                    {typeInfo.label}
-                  </span>
-                </div>
-              </div>
+             
 
               <div className="p-6 lg:p-8">
-                <h1 className="text-2xl lg:text-3xl font-extrabold text-[#0F172A] mb-4">
-                  {result.championshipName}
-                </h1>
+
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+                  <h1 className="text-2xl lg:text-3xl font-extrabold text-[#0F172A]">
+                    {result.championshipName}
+                  </h1>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 w-fit ${typeInfo.color}`}>
+                    <TypeIcon size={14} />
+                    <span>{typeInfo.label}</span>
+                  </div>
+                </div>
 
                 <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-500">
                   <p className="flex items-center gap-1.5">
@@ -151,76 +150,69 @@ export default function PreviousResultDetailPage() {
                   </div>
                 )}
 
-                <div className="border-t border-gray-100 pt-6">
+                <div className="border-t border-gray-100 ">
                   <h2 className="text-lg font-bold text-[#0F172A] mb-4">Result Document</h2>
 
-                  {result.resultType === 'pdf' && result.fileUrl && (
-                    <div className="space-y-4">
-                      <div className="rounded-xl overflow-hidden border border-gray-200">
-                        <iframe
-                          src={result.fileUrl}
-                          className="w-full h-[600px]"
-                          title="PDF Preview"
-                        />
+                    {result.resultType === 'pdf' && result.fileUrl && (
+                      <div className="space-y-4">
+                        <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                          <iframe
+                            src={`${result.fileUrl}#view=FitH&toolbar=0`}
+                            className="w-full h-[60vh] md:h-[75vh] lg:h-[95vh]"
+                            title="PDF Preview"
+                            allowFullScreen
+                          />
+                        </div>
+            
                       </div>
-                      <a
-                        href={result.fileUrl}
-                        download
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200"
-                      >
-                        <Download size={16} /> Download PDF
-                      </a>
-                    </div>
-                  )}
+                    )}
 
-                  {result.resultType === 'spreadsheet' && result.fileUrl && (
-                    <div className="space-y-4">
-                      <div className="rounded-xl border border-gray-200 overflow-hidden">
-                        <iframe
-                          src={`https://viewered.azurewebsites.net/viewer?src=${encodeURIComponent(result.fileUrl)}`}
-                          className="w-full h-[600px]"
-                          title="Spreadsheet Preview"
-                          onError={(e) => { e.target.style.display = 'none' }}
-                        />
-                      </div>
-                      <a
-                        href={result.fileUrl}
-                        download
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200"
-                      >
-                        <Download size={16} /> Download Spreadsheet
-                      </a>
-                    </div>
-                  )}
+                   {result.resultType === 'spreadsheet' && result.fileUrl && (
+                     <div className="space-y-4">
+                       <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-50">
+                         <iframe
+                           src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(result.fileUrl)}`}
+                           className="w-full h-[60vh] md:h-[75vh] lg:h-[85vh]"
+                           title="Spreadsheet Preview"
+                           allowFullScreen
+                           onError={(e) => { e.target.style.display = 'none' }}
+                         />
+                       </div>
+                       <p className="text-xs text-[#64748B] text-center">
+                         If preview doesn't load, the file may not be publicly accessible.
+                       </p>
+                     </div>
+                   )}
 
-                  {result.resultType === 'drive' && result.driveLink && (
-                    <div className="space-y-4">
-                      {(() => {
-                        const driveMatch = result.driveLink.match(/\/d\/([a-zA-Z0-9_-]+)/)
-                        if (driveMatch) {
-                          const embedUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`
-                          return (
-                            <div className="rounded-xl overflow-hidden border border-gray-200">
-                              <iframe
-                                src={embedUrl}
-                                className="w-full h-[600px]"
-                                title="Google Drive Preview"
-                              />
-                            </div>
-                          )
-                        }
-                        return null
-                      })()}
-                      <a
-                        href={result.driveLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200"
-                      >
-                        <ExternalLink size={16} /> Open in Google Drive
-                      </a>
-                    </div>
-                  )}
+                   {result.resultType === 'drive' && result.driveLink && (
+                     <div className="space-y-4">
+                       {(() => {
+                         const driveMatch = result.driveLink.match(/\/d\/([a-zA-Z0-9_-]+)/)
+                         if (driveMatch) {
+                           const embedUrl = `https://drive.google.com/file/d/${driveMatch[1]}/preview`
+                           return (
+                             <div className="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                               <iframe
+                                 src={embedUrl}
+                                 className="w-full h-[60vh] md:h-[75vh] lg:h-[85vh]"
+                                 title="Google Drive Preview"
+                                 allowFullScreen
+                               />
+                             </div>
+                           )
+                         }
+                         return null
+                       })()}
+                       <a
+                         href={result.driveLink}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary-dark transition-all duration-200"
+                       >
+                         <ExternalLink size={16} /> Open in Google Drive
+                       </a>
+                     </div>
+                   )}
                 </div>
 
                 <div className="mt-6 text-xs text-[#94A3B8]">

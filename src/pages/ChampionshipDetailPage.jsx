@@ -15,6 +15,7 @@ import FinalResultsTable from '../components/results/FinalResultsTable'
 import AllAthletesTable from '../components/results/AllAthletesTable'
 import PointsTable from '../components/results/PointsTable'
 import MedalsTable from '../components/results/MedalsTable'
+import RecordsTrophiesView from '../components/results/RecordsTrophiesView'
 import { PageSkeleton } from '../components/results/LoadingSkeleton'
 
 const API = import.meta.env.VITE_API_URL
@@ -37,6 +38,10 @@ export default function ChampionshipDetailPage() {
   const [pointsLoading, setPointsLoading] = useState(false)
   const [medals, setMedals] = useState(null)
   const [medalsLoading, setMedalsLoading] = useState(false)
+  const [records, setRecords] = useState(null)
+  const [recordsLoading, setRecordsLoading] = useState(false)
+  const [trophies, setTrophies] = useState(null)
+  const [trophiesLoading, setTrophiesLoading] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -131,6 +136,38 @@ export default function ChampionshipDetailPage() {
       .finally(() => setMedalsLoading(false))
   }, [championship])
 
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasRecords = sheets.records?.connected && sheets.records?.url
+    if (!hasRecords) {
+      setRecords(null)
+      return
+    }
+
+    setRecordsLoading(true)
+    axios.get(API + `/api/results/records/${championship.championship_id}`)
+      .then((res) => setRecords(res.data))
+      .catch(() => setRecords(null))
+      .finally(() => setRecordsLoading(false))
+  }, [championship])
+
+  useEffect(() => {
+    if (!championship) return
+    const sheets = championship.googleSheets || {}
+    const hasTrophies = sheets.trophies?.connected && sheets.trophies?.url
+    if (!hasTrophies) {
+      setTrophies(null)
+      return
+    }
+
+    setTrophiesLoading(true)
+    axios.get(API + `/api/results/trophies/${championship.championship_id}`)
+      .then((res) => setTrophies(res.data))
+      .catch(() => setTrophies(null))
+      .finally(() => setTrophiesLoading(false))
+  }, [championship])
+
   const Nav = user?.role === 'athlete' ? AthleteNavbar : Navbar
 
   if (loading) {
@@ -194,6 +231,8 @@ export default function ChampionshipDetailPage() {
     'start-lists': <StartListTable startListData={startList} loading={startListLoading} />,
     'heat-results': <HeatResultsTable heatData={heatResults} loading={heatResultsLoading} />,
     'final-results': <FinalResultsTable finalData={finalResults} loading={finalResultsLoading} format={championship?.finalResultsFormat || 'normal'} />,
+    'records': <RecordsTrophiesView data={records} loading={recordsLoading} title="Records" />,
+    'trophies': <RecordsTrophiesView data={trophies} loading={trophiesLoading} title="Trophies" />,
     points: <PointsTable pointsData={points} loading={pointsLoading} />,
     medals: <MedalsTable medalsData={medals} loading={medalsLoading} />,
     'all-athletes': <AllAthletesTable registrations={athletes} loading={athletesLoading} championship={championship} />,

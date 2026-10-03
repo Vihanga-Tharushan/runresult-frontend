@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, Calendar, FileText, Table, Link as LinkIcon, Download, ExternalLink, Search, X } from 'lucide-react'
+import { MapPin, Calendar, FileText, Table, Link as LinkIcon, ExternalLink, Search, X } from 'lucide-react'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import AthleteNavbar from '../components/AthleteNavbar'
@@ -143,15 +143,15 @@ export default function PreviousResultsPage() {
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
                     <div className="h-32 bg-gray-100" />
-                    <div className="p-5 space-y-3">
-                      <div className="h-4 bg-gray-100 rounded w-3/4" />
-                      <div className="h-3 bg-gray-50 rounded w-1/2" />
-                      <div className="h-3 bg-gray-50 rounded w-2/3" />
-                      <div className="flex gap-2 pt-2">
-                        <div className="h-9 bg-gray-100 rounded-xl w-1/2" />
-                        <div className="h-9 bg-gray-50 rounded-xl w-1/2" />
+                      <div className="p-5 space-y-3">
+                        <div className="h-4 bg-gray-100 rounded w-full" />
+                        <div className="h-4 bg-gray-100 rounded w-4/5" />
+                        <div className="h-3 bg-gray-50 rounded w-1/2" />
+                        <div className="h-3 bg-gray-50 rounded w-2/3" />
+                        <div className="flex gap-2 pt-2">
+                          <div className="h-9 bg-gray-100 rounded-xl w-full" />
+                        </div>
                       </div>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -195,7 +195,7 @@ export default function PreviousResultsPage() {
                       </div>
 
                       <div className="p-5">
-                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2">
+                        <h3 className="text-lg font-bold text-gray-900 mb-3 line-clamp-2 min-h-14">
                           {result.championshipName}
                         </h3>
 
@@ -211,30 +211,23 @@ export default function PreviousResultsPage() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Link
-                            to={`/previous-results/${result._id}`}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-[#64748B] hover:bg-gray-50 hover:text-[#0F172A] transition-all duration-200"
-                          >
-                            View Details
-                          </Link>
-                          {result.resultType === 'drive' ? (
-                            <a
-                              href={result.driveLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-all duration-200"
-                            >
-                              <ExternalLink size={14} /> Open Result
-                            </a>
-                          ) : (
-                            <a
-                              href={result.fileUrl}
-                              download
-                              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-all duration-200"
-                            >
-                              <Download size={14} /> Download
-                            </a>
-                          )}
+                           {result.resultType === 'drive' ? (
+                             <a
+                               href={result.driveLink}
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-all duration-200"
+                             >
+                               <ExternalLink size={14} /> Open Result
+                             </a>
+                           ) : (
+                             <Link
+                               to={`/previous-results/${result._id}`}
+                               className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-all duration-200"
+                             >
+                               <ExternalLink size={14} /> View Result
+                             </Link>
+                           )}
                         </div>
                       </div>
                     </motion.div>

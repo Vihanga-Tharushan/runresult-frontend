@@ -6,6 +6,8 @@ const tabs = [
   { id: 'start-lists', label: 'Start Lists' },
   { id: 'points', label: 'Points' },
   { id: 'medals', label: 'Medals' },
+  { id: 'records', label: 'Records' },
+  { id: 'trophies', label: 'Trophies' },
   { id: 'all-athletes', label: 'Athletes By Event' },
   { id: 'program', label: 'Program' },
 
