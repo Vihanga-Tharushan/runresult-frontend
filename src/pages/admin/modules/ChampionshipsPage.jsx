@@ -65,7 +65,7 @@ export default function ChampionshipsPage() {
           toast.success('Championship created successfully')
           setView('list')
         })
-        .catch(() => toast.error('Failed to create championship'))
+        .catch(err => toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to create championship'))
     }
   }
 

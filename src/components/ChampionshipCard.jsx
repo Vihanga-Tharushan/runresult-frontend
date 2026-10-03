@@ -23,9 +23,7 @@ export default function ChampionshipCard({ championship, index }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
-        <span className="absolute top-3 left-3 px-3 py-1 bg-primary text-white text-xs font-semibold rounded-full shadow capitalize">
-          {championship.registrationStatus || 'draft'}
-        </span>
+        
       </div>
 
       <div className="p-5">
