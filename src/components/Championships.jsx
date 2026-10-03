@@ -48,7 +48,7 @@ export default function Championships() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 gap-5 max-w-xs sm:max-w-sm md:max-w-none md:grid-cols-3 mx-auto md:gap-6 lg:gap-8">
           {loading ? (
             [...Array(3)].map((_, i) => (
               <div key={i} className="bg-surface rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
@@ -69,7 +69,7 @@ export default function Championships() {
               />
             ))
           ) : (
-            <p className="col-span-3 text-center text-gray-400 py-10">No championships available yet.</p>
+            <p className="md:col-span-3 text-center text-gray-400 py-10">No championships available yet.</p>
           )}
         </div>
 
