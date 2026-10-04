@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Trophy, Medal } from 'lucide-react'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 
 function MedalCell({ type, value }) {
   const config = {
@@ -102,7 +103,8 @@ export default function MedalsTable({ medalsData, loading }) {
             </p>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
+          <TableWatermark />
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50/80">

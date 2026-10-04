@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion'
 import ResultBadge from './ResultBadge'
 import ExportActions from './ExportActions'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 
 function HeatAccordion({ heat, defaultOpen = false }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
@@ -31,7 +32,8 @@ function HeatAccordion({ heat, defaultOpen = false }) {
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="overflow-x-auto border-t border-gray-50">
+            <div className="relative overflow-x-auto border-t border-gray-50">
+              <TableWatermark />
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50/80">

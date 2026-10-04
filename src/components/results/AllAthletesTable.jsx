@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import EventAccordion from './EventAccordion'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 import { flatEvents } from '../../data/adminData'
 
 const eventName = (id) => {
@@ -135,7 +136,8 @@ export default function AllAthletesTable({ registrations, loading, championship 
                         {athletes.length} athlete{athletes.length !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="relative overflow-x-auto">
+                      <TableWatermark />
                       <table className="w-full">
                         <thead>
                           <tr className="bg-gray-50/80">

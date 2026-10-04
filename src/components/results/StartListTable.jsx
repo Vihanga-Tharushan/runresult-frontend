@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import EventAccordion from './EventAccordion'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 
 export default function StartListTable({ startListData, loading }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -110,7 +111,8 @@ export default function StartListTable({ startListData, loading }) {
                 subtitle={`${event.gender} • ${event.category} • ${event.entries.length} athletes`}
                 defaultOpen={ei === 0}
               >
-                <div className="overflow-x-auto">
+                <div className="relative overflow-x-auto">
+                  <TableWatermark />
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50/80">

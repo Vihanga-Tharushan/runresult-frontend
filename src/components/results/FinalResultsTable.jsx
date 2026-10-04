@@ -4,6 +4,7 @@ import { Search, Users } from 'lucide-react'
 import MedalBadge from './MedalBadge'
 import EventAccordion from './EventAccordion'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 
 export default function FinalResultsTable({ finalData, loading, format = 'normal' }) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -118,7 +119,8 @@ export default function FinalResultsTable({ finalData, loading, format = 'normal
                 subtitle={event.date}
                 defaultOpen={true}
               >
-                <div className="overflow-x-auto">
+                <div className="relative overflow-x-auto">
+                  <TableWatermark />
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50/80">

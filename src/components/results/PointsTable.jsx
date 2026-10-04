@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Search, Trophy, Medal } from 'lucide-react'
 import EmptyState from './EmptyState'
+import TableWatermark from './TableWatermark'
 
 function RankBadge({ place }) {
   if (!place) return <span className="text-xs text-[#64748B]">-</span>
@@ -23,7 +24,8 @@ function PointsCard({ title, subtitle, rows, columns, highlight }) {
           {subtitle && <p className="text-xs text-[#64748B]">{subtitle}</p>}
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="relative overflow-x-auto">
+        <TableWatermark />
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50/80">
