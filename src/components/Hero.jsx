@@ -9,16 +9,18 @@ import {
   User,
   Users,
 } from "lucide-react";
-import heroSprint from "../assets/hero-sprint.png";
+import heroSprint from "../assets/yupun.jpeg";
 import heroHurdles from "../assets/hero-hurdles.jpg";
 import heroRelay from "../assets/hero-relay.jpg";
-import heroJavelin from "../assets/hero-javelin.jpg";
+import heroJavelinrumesh from "../assets/javelin rt.jpeg";
+import herotharushi from "../assets/tharushi.jpg";
 
 const SLIDES = [
   { src: heroSprint, alt: "Sprinters racing on the track" },
   { src: heroHurdles, alt: "Athlete clearing a hurdle" },
   { src: heroRelay, alt: "Relay baton exchange" },
-  { src: heroJavelin, alt: "Javelin thrower in action" },
+  { src: heroJavelinrumesh, alt: "Javelin thrower in action" },
+  { src: herotharushi, alt: "Athlete in action" },
 ];
 
 const SLIDE_INTERVAL_MS = 5000;
